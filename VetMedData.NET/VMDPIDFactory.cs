@@ -53,7 +53,60 @@ namespace VetMedData.NET
 
             foreach (var rep in raw.ExpiredProducts)
             {
+                var oep = new ExpiredProduct
+                {
+                    ActiveSubstances = rep.ActiveSubstances.Split(',').Select(a => a.Trim()),
+                    AuthorisationRoute = rep.AuthorisationRoute.Trim(),
+                    MAHolder = rep.MAHolder.Trim(),
+                    Name = rep.Name.Trim(),
+                    SPC_Link = rep.SPC_Link.Trim(),
+                    VMNo = rep.VMNo.Trim(),
+                    DateofExpiration = rep.DateOfExpiration
+                };
+                output.ExpiredProducts.Add(oep);
+            }
 
+            foreach (var rsp in raw.SuspendedProducts)
+            {
+                var osp = new SuspendedProduct()
+                {
+                    ActiveSubstances = rsp.ActiveSubstances.Split(',').Select(a => a.Trim()),
+                    AuthorisationRoute = rsp.AuthorisationRoute.Trim(),
+                    ControlledDrug = rsp.ControlledDrug,
+                    DateOfIssue = rsp.DateOfIssue,
+                    DistributionCategory = rsp.DistributionCategory.Trim(),
+                    MAHolder = rsp.MAHolder.Trim(),
+                    Name = rsp.Name.Trim(),
+                    PAAR_Link = rsp.PAAR_Link.Trim(),
+                    PharmaceuticalForm = rsp.PharmaceuticalForm.Trim(),
+                    SPC_Link = rsp.SPC_Link.Trim(),
+                    TargetSpecies = rsp.TargetSpecies.Split(',').Select(a => a.Trim()),
+                    TherapeuticGroup = rsp.TherapeuticGroup.Trim(),
+                    UKPAR_Link = rsp.UKPAR_Link.Trim(),
+                    VMNo = rsp.VMNo.Trim(),
+                    DateOfSuspension = rsp.DateOfSuspension
+
+                };
+                output.SuspendedProducts.Add(osp);
+            }
+
+            foreach (var rhp in raw.HomeopathicProducts)
+            {
+                var ohp = new HomoeopathicProduct
+                {
+                    ActiveSubstances = rhp.ActiveSubstances.Split(',').Select(a => a.Trim()),
+                    AuthorisationRoute = rhp.AuthorisationRoute.Trim(),
+                    ControlledDrug = rhp.ControlledDrug,
+                    DateOfIssue = rhp.DateOfIssue,
+                    DistributionCategory = rhp.DistributionCategory.Trim(),
+                    MAHolder = rhp.MAHolder.Trim(),
+                    Name = rhp.Name.Trim(),
+                    PharmaceuticalForm = rhp.PharmaceuticalForm.Trim(),
+                    TargetSpecies = rhp.TargetSpecies.Split(',').Select(a => a.Trim()),
+                    TherapeuticGroup = rhp.TherapeuticGroup.Trim(),
+                    VMNo = rhp.VMNo.Trim()
+                };
+                output.HomoeopathicProducts.Add(ohp);
             }
 
             return output;

@@ -1,6 +1,11 @@
 # VetMedData.NET
 A .NET Core class library for obtaining structured data on UK-licensed Veterinary Medicines
 
+## Building
+This library is provided as a Microsoft Visual Studio 2017 solution.
+
+TODO: Build instructions for dotnet core.
+
 ## Using
 
 ### Getting the VMD PID
