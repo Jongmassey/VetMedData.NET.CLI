@@ -1,6 +1,8 @@
 # VetMedData.NET
 A .NET Core class library for obtaining structured data on UK-licensed Veterinary Medicines
 
+[![Build status](https://jongmassey.visualstudio.com/VetMedData.NET%20Build/_apis/build/status/1?branch=master)](https://jongmassey.visualstudio.com/VetMedData.NET%20Build/_apis/build/status/1?branch=master)]
+
 ## Building
 This library is provided as a Microsoft Visual Studio 2017 solution and can be build from within this IDE.
 
