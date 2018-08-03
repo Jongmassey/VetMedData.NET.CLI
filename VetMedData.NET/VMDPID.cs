@@ -45,7 +45,7 @@ namespace VetMedData.NET
         public DateTime DateOfIssue { get; set; }
         public string AuthorisationRoute { get; set; }
         public IEnumerable<string> ActiveSubstances { get; set; }
-        public char ControlledDrug { get; set; }
+        public string ControlledDrug { get; set; }
         public IEnumerable<string> TargetSpecies { get; set; }
         public string DistributionCategory { get; set; }
         public string PharmaceuticalForm { get; set; }
