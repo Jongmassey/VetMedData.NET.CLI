@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace VetMedData.NET
 {
+    /// <summary>
+    /// Defines structure of Product Information Database
+    /// from Veterinary Medicines Directorate
+    /// </summary>
+    
     public class VMDPID
     {
         public DateTime CreatedDateTime { get; set; }
@@ -17,6 +22,26 @@ namespace VetMedData.NET
 
     }
 
+    /// <summary>
+    /// Defines properties common to all product types
+    /// </summary>
+    public abstract class Product
+    {
+        public string Name { get; set; }
+        public string MAHolder { get; set; }
+        public string VMNo { get; set; }
+        public DateTime DateOfIssue { get; set; }
+        public string AuthorisationRoute { get; set; }
+        public IEnumerable<string> ActiveSubstances { get; set; }
+        public string ControlledDrug { get; set; }
+        public IEnumerable<string> TargetSpecies { get; set; }
+        public string DistributionCategory { get; set; }
+        public string PharmaceuticalForm { get; set; }
+        public string TherapeuticGroup { get; set; }
+        public string SPC_Link { get; set; }
+        public string UKPAR_Link { get; set; }
+        public string PAAR_Link { get; set; }
+    }
 
     public class CurrentlyAuthorisedProduct : Product
     {
@@ -37,21 +62,5 @@ namespace VetMedData.NET
     {
     }
 
-    public abstract class Product
-    {
-        public string Name { get; set; }
-        public string MAHolder { get; set; }
-        public string VMNo { get; set; }
-        public DateTime DateOfIssue { get; set; }
-        public string AuthorisationRoute { get; set; }
-        public IEnumerable<string> ActiveSubstances { get; set; }
-        public string ControlledDrug { get; set; }
-        public IEnumerable<string> TargetSpecies { get; set; }
-        public string DistributionCategory { get; set; }
-        public string PharmaceuticalForm { get; set; }
-        public string TherapeuticGroup { get; set; }
-        public string SPC_Link { get; set; }
-        public string UKPAR_Link { get; set; }
-        public string PAAR_Link { get; set; }
-    }
+   
 }
