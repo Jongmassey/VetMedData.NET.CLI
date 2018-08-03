@@ -2,9 +2,10 @@
 A .NET Core class library for obtaining structured data on UK-licensed Veterinary Medicines
 
 ## Building
-This library is provided as a Microsoft Visual Studio 2017 solution.
+This library is provided as a Microsoft Visual Studio 2017 solution and can be build from within this IDE.
 
-TODO: Build instructions for dotnet core.
+For other platforms, the following command within the VetMedData.NET folder will build the project
+```dotnet build -c Release```
 
 ## Using
 
