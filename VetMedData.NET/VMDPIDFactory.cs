@@ -9,7 +9,7 @@ using System.Xml.Serialization;
 
 namespace VetMedData.NET
 {
-    public class VMDPIDFactory
+    public static class VMDPIDFactory
     {
         private const string VmdUrl = @"http://www.vmd.defra.gov.uk/ProductInformationDatabase/downloads/VMD_ProductInformationDatabase.xml";
         private const string fmt = @"dd/MM/yyyy HH:mm:ss";
@@ -48,6 +48,11 @@ namespace VetMedData.NET
 
                 };
                 output.CurrentlyAuthorisedProducts.Add(ocp);
+
+            }
+
+            foreach (var rep in raw.ExpiredProducts)
+            {
 
             }
 
