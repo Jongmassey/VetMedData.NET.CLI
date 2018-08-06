@@ -21,7 +21,7 @@ namespace VetMedData.Tests
         }
 
         [TestMethod]
-        public void AllProducts()
+        public void TestAllProducts()
         {
             var pid = VMDPIDFactory.GetVmdpid().Result;
             var ap = pid.AllProducts;
@@ -54,6 +54,19 @@ namespace VetMedData.Tests
                     Assert.IsTrue(((IEnumerable<string>)property.GetValue(product)).Any(), $"Property {property.Name} empty for product {product}");
                 }
             }
+        }
+
+        [TestMethod]
+        public void TestProductPropertyAggregators()
+        {
+            var pid = VMDPIDFactory.GetVmdpid().Result;
+            foreach (var prop in typeof(VMDPID).GetProperties().Where(p=>p.PropertyType == typeof(IEnumerable<string>)))
+            {
+                var p = (IEnumerable<string>) prop.GetValue(pid);
+                Assert.IsNotNull(p,$"{prop.Name} is null");
+                Assert.IsTrue(p.Any(),$"{prop.Name} empty");
+            }
+            
         }
     }
 }
