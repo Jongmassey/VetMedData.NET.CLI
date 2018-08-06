@@ -42,22 +42,30 @@ namespace VetMedData.NET
         public string UKPAR_Link { get; set; }
         public string PAAR_Link { get; set; }
     }
-
+    /// <summary>
+    /// Product with a current, active marketing authorisation
+    /// </summary>
     public class CurrentlyAuthorisedProduct : Product
     {
         public IEnumerable<string> Distributors { get; set; }
     }
-
+    /// <summary>
+    /// Product whose marketing authorisation has been suspended
+    /// </summary>
     public class SuspendedProduct : Product
     {
         public DateTime DateOfSuspension { get; set; }
     }
-
+    /// <summary>
+    /// Product whose marketing authorisation has expired
+    /// </summary>
     public class ExpiredProduct : Product
     {
         public DateTime DateofExpiration { get; set; }
     }
-
+    /// <summary>
+    /// Authorised homoepathic product
+    /// </summary>
     public class HomoeopathicProduct : Product
     {
     }
