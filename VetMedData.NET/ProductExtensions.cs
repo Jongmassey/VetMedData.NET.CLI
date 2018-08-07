@@ -53,5 +53,14 @@ namespace VetMedData.NET
 
             return outstr;
         }
+
+        public static ProductMatchResult GetMatchingResult(this Product product, Product referenceProduct, ProductMatchConfig cfg) => new ProductMatchResult
+        {
+            InputProduct = product,
+            ReferenceProduct = referenceProduct,
+            ProductNameSimilarity =
+                    new ProductNameMetric(cfg.NameMetricConfig)
+                        .GetSimilarity(product.Name, referenceProduct.Name)
+        };
     }
 }

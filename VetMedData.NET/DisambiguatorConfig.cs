@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Collections.Specialized;
 
 namespace VetMedData.NET
 {
@@ -8,8 +7,13 @@ namespace VetMedData.NET
     {
     }
 
-    public class DefaultDisambiguatorConfig : DisambiguatorConfig
+    public class WeightedFilterBasedDisambiguatorConfig : DisambiguatorConfig
     {
+        public IDictionary<IProductMatchResultFilter, double> FiltersAndWeights { get; set; }
+    }
 
+    public class OrderedFilterBasedDisambiguatorConfig : DisambiguatorConfig
+{
+        public IProductMatchResultFilter[] Filters { get; set; }
     }
 }
