@@ -26,17 +26,17 @@ namespace VetMedData.NET
         /// Power to which the token index will be raised to form
         /// inverse weighting coefficient for A string
         /// </summary>
-        public float APositionalWeightingCoefficientPower { get; set; }
+        public double APositionalWeightingCoefficientPower { get; set; }
         /// <summary>
         /// Power to which the token index will be raised to form
         /// inverse weighting coefficient for B string
         /// </summary>
-        public float BPositionalWeightingCoefficientPower { get; set; }
+        public double BPositionalWeightingCoefficientPower { get; set; }
         /// <summary>
         /// Ratio of A-token-index-weighting (0) to
         /// B-token-index-weighting (1) to be applied.
         /// </summary>
-        public float ABCompoundPositionalWeightRatio { get; set; }
+        public double ABCompoundPositionalWeightRatio { get; set; }
     }
 
     public class DefaultProductNameMetricConfig : ProductNameMetricConfig
@@ -46,9 +46,9 @@ namespace VetMedData.NET
             InnerMetric = new Levenstein();
             NameCleaningConfig = new DefaultMatchNameCleaningConfig();
             Tokeniser = new TokeniserWhitespace();
-            APositionalWeightingCoefficientPower = 0f;
-            BPositionalWeightingCoefficientPower = 1.5f;
-            ABCompoundPositionalWeightRatio = 1f;
-        }
+            APositionalWeightingCoefficientPower = 1.5d;
+            BPositionalWeightingCoefficientPower = 0d;
+            ABCompoundPositionalWeightRatio = 0d;
+            }
     }
 }
