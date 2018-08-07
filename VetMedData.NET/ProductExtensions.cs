@@ -16,10 +16,12 @@ namespace VetMedData.NET
         /// to rules defined in configuration class
         /// </summary>
         /// <param name="product">Product from which cleaned name will be extracted</param>
-        /// <param name="cfg">Configuration for cleaning rules</param>
-        /// <returns></returns>
-        public static string GetCleanedName(this Product product, NameCleaningConfig cfg)
+        /// <param name="cfg">Configuration for cleaning rules.
+        /// Defaults to DefaultMatchNameCleaningConfig</param>
+        /// <returns>Name field from product, cleaned according to configured rules</returns>
+        public static string GetCleanedName(this Product product, NameCleaningConfig cfg = null)
         {
+            cfg = cfg ?? new DefaultMatchNameCleaningConfig();
             var outstr = product.Name;
 
             outstr = cfg.RemoveBracketedTerms ?

@@ -1,12 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using SimMetrics.Net.API;
 
 namespace VetMedData.NET
 {
-    class MedicineMetric :AbstractStringMetric
+    public class ProductNameMetric :AbstractStringMetric
     {
+        private ProductNameMetricConfig _config;
+        public ProductNameMetric(ProductNameMetricConfig conf)
+        {
+            _config = conf;
+        }
+
+        /// <summary>
+        /// Do Not Use. Use ProductNameMetric(ProductNameMetricConfig conf) instead.
+        /// </summary>
+        public ProductNameMetric()
+        {
+            throw new NotImplementedException("Configuration required at construction");
+        }
+
         public override double GetSimilarity(string firstWord, string secondWord)
         {
             throw new NotImplementedException();

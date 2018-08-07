@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace VetMedData.NET
+﻿namespace VetMedData.NET
 {
     /// <summary>
     /// Default set of rules to agressively clean medicine names for
