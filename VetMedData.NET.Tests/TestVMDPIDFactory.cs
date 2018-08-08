@@ -49,8 +49,13 @@ namespace VetMedData.Tests
                 }
 
                 //check all string list props populated
-                foreach (var property in typeof(Product).GetProperties().Where(p => p.PropertyType == typeof(IEnumerable<string>)))
+                foreach (var property in typeof(Product).GetProperties()
+                    .Where(p => p.PropertyType == typeof(IEnumerable<string>)))
                 {
+                    if (typeof(ExpiredProduct) == product.GetType()
+                        && property.Name.Equals("TargetSpecies"))
+                    {continue;}
+
                     Assert.IsTrue(((IEnumerable<string>)property.GetValue(product)).Any(), $"Property {property.Name} empty for product {product}");
                 }
             }
