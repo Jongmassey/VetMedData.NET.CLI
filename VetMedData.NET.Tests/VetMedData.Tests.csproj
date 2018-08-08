@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestFiles\SPC_91079.docx">
+    <None Update="TestFiles\TestSPCParser\SPC_91079.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="TestFiles\TestWordConverter\SPC_91079.DOC">

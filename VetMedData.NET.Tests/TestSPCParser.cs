@@ -10,11 +10,11 @@ namespace VetMedData.Tests
     [TestClass]
     public class TestSPCParser
     {
-        [TestMethod]
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
         public void TestTargetSpeciesExtraction()
         {
             //todo:refer to file within project
-            const string pathtospc = @"C:\temp\SPC_91079.docx";
+            const string pathtospc = @"TestFiles\TestSPCParser\SPC_91079.docx";
 
             var expectedoutput = new[]
             {
