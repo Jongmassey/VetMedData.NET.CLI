@@ -10,13 +10,13 @@ namespace VetMedData.Tests
     [TestClass]
     public class TestWordConverter
     {
-        [TestMethod]
+        [TestMethod, DeploymentItem(@"TestFiles\TestWordConverter\", @"TestFiles\TestWordConverter\")]
         public void TestDocToDocxFile()
         {
-            //todo:move project folders
-            var docpath = "C:\\temp\\wordconvertertest\\SPC_91079.DOC";
+            var docpath = @"TestFiles\TestWordConverter\SPC_91079.DOC";
             var docxpath = WordConverter.ConvertDocToDocx(docpath);
             Assert.IsTrue(File.Exists(docxpath));
+            File.Delete(docxpath);
 
         }
     }
