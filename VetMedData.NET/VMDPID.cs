@@ -102,6 +102,7 @@ namespace VetMedData.NET
             return $"{GetType()}: Name:{Name} VMNo:{VMNo}";
         }
     }
+    /// <inheritdoc />
     /// <summary>
     /// Product with a current, active marketing authorisation
     /// </summary>
@@ -117,6 +118,7 @@ namespace VetMedData.NET
         public string UKPAR_Link { get; set; }
         public string PAAR_Link { get; set; }
     }
+    /// <inheritdoc />
     /// <summary>
     /// Product whose marketing authorisation has been suspended
     /// </summary>
@@ -140,6 +142,7 @@ namespace VetMedData.NET
         public DateTime DateofExpiration { get; set; }
         public string SPC_Link { get; set; }
     }
+    /// <inheritdoc />
     /// <summary>
     /// Authorised homoepathic product
     /// </summary>
@@ -151,6 +154,13 @@ namespace VetMedData.NET
         public string PharmaceuticalForm { get; set; }
         public string TherapeuticGroup { get; set; }
     }
-
+    /// <inheritdoc />
+    /// <summary>
+    /// Product administered as recorded in medicine record
+    /// </summary>
+    public class AdministeredProduct : Product
+    {
+        public DateTime AdministeredDate { get; set; }
+    }
 
 }

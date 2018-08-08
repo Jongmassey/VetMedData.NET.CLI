@@ -38,17 +38,9 @@ namespace VetMedData.NET
         public IEnumerable<ProductMatchResult> FilterResults(IEnumerable<ProductMatchResult> results)
         {
             return results.Where(r =>
-                r.InputProduct.GetType().GetProperties().Any(p => p.Name.Equals("TargetSpecies"))
-                &&
-                r.ReferenceProduct.GetType().GetProperties().Any(p => p.Name.Equals("TargetSpecies"))
-                && ((IEnumerable<string>)r.InputProduct.GetType()
-                    .GetProperties()
-                    .Single(p => p.Name.Equals("TargetSpecies")).GetValue(r.InputProduct))
-                  .Intersect(
-                    (IEnumerable<string>)r.ReferenceProduct.GetType()
-                      .GetProperties()
-                      .Single(p => p.Name.Equals("TargetSpecies")).GetValue(r.ReferenceProduct))
-                  .Any()
+                r.InputProduct.TargetSpecies != null &&
+                r.ReferenceProduct.TargetSpecies != null &&
+                r.InputProduct.TargetSpecies.Intersect(r.ReferenceProduct.TargetSpecies).Any()
             );
         }
     }
