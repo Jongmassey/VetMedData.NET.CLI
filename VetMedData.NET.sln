@@ -3,12 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VetMedData.NET", "VetMedData.NET\VetMedData.NET.csproj", "{FAE22E96-8531-4DB2-9F50-634150988FA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VetMedData.NET", "VetMedData.NET\VetMedData.NET.csproj", "{FAE22E96-8531-4DB2-9F50-634150988FA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VetMedData.Tests", "VetMedData.NET.Tests\VetMedData.Tests.csproj", "{E3C63FA3-7A92-4DE4-9F81-09A2B9716E41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VetMedData.Tests", "VetMedData.NET.Tests\VetMedData.Tests.csproj", "{E3C63FA3-7A92-4DE4-9F81-09A2B9716E41}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B58678CC-0045-418F-876B-6A17064B3803}"
 	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
