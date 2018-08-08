@@ -68,5 +68,13 @@ namespace VetMedData.Tests
             }
             
         }
+
+        [TestMethod]
+        public void TestGetPIDWithExpiredProductTargetSpecies()
+        {
+            var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
+            Assert.IsFalse(pid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
+                                                           ep.SPC_Link.ToLower().EndsWith(".docx")).Any(ep=>!ep.TargetSpecies.Any()));
+        }
     }
 }
