@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace VetMedData.NET
 {
@@ -117,10 +118,10 @@ namespace VetMedData.NET
         /// HTTP GETs XML PID from VMD as stream
         /// </summary>
         /// <returns></returns>
-        private static async Task<Stream> GetXMLStream()
+        private static async Task<Stream> GetHTTPStream(string url)
         {
             var ms = new MemoryStream();
-            using (var resp = await Client.GetAsync(VmdUrl))
+            using (var resp = await Client.GetAsync(url))
             using (var instream = await resp.Content.ReadAsStreamAsync())
             {
                 await instream.CopyToAsync(ms);
@@ -128,6 +129,56 @@ namespace VetMedData.NET
 
             ms.Seek(0, SeekOrigin.Begin);
             return ms;
+        }
+
+        private static async Task<VMDPID> PopulateExpiredProductTargetSpecies(VMDPID inpid)
+        {
+            foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
+                                                                           ep.SPC_Link.ToLower().EndsWith(".docx")))
+            {
+                //Stream spcStream;
+                var tdoc = "";
+                var tdocx = "";
+                var tf = "";
+                var doc = expiredProduct.SPC_Link.EndsWith(".doc", StringComparison.InvariantCultureIgnoreCase);
+                if (doc)
+                {
+                    tf = Path.GetTempFileName();
+                    tdoc = $"{tf}.doc";
+                    File.Move(tf, tdoc);
+
+                    using (var fs = File.OpenWrite(tdoc))
+                    {
+                        GetHTTPStream(expiredProduct.SPC_Link).Result.CopyTo(fs);
+                        fs.Flush();
+                    }
+
+                    tdocx = WordConverter.ConvertDocToDocx(tdoc);
+
+
+                }
+                else
+                {
+                    tf = Path.GetTempFileName();
+                    tdocx = $"{tf}.docx";
+                    File.Move(tf, tdocx);
+                    using (var fs = File.OpenWrite(tdocx))
+                    {
+                        GetHTTPStream(expiredProduct.SPC_Link).Result.CopyTo(fs);
+                    }
+                }
+
+                using (var spcStream = File.Open(tdocx, FileMode.Open))
+                {
+                    var ts = SPCParser.GetTargetSpecies(spcStream);
+                    expiredProduct.TargetSpecies = ts;
+                }
+
+                if (!string.IsNullOrEmpty(tdoc) && File.Exists(tdoc)) { File.Delete(tdoc); }
+                if (!string.IsNullOrEmpty(tdocx) && File.Exists(tdocx)) { File.Delete(tdocx); }
+            }
+
+            return inpid;
         }
 
         /// <summary>
@@ -138,15 +189,20 @@ namespace VetMedData.NET
         /// <param name="overrideStoredInstance">
         /// Setting to true will cause new copy of XML PID to be downloaded from VMD
         /// </param>
+        /// <param name="getTargetSpeciesForExpiredProducts">
+        /// Setting to true will HTTP get the SPC document for every expired product and
+        /// will attempt to parse the TargetSpecies section into structured data.
+        /// </param>
         /// <returns></returns>
-        public static async Task<VMDPID> GetVmdpid(bool overrideStoredInstance = false)
+        public static async Task<VMDPID> GetVmdpid(bool overrideStoredInstance = false,
+            bool getTargetSpeciesForExpiredProducts = false)
         {
             if (overrideStoredInstance || _vmdpid == null)
             {
                 //load incoming stream from HTTP as LINQ to XML element
-                var xe = XDocument.Load(await GetXMLStream());
+                var xe = XDocument.Load(await GetHTTPStream(VmdUrl));
                 var comments = xe.DescendantNodes().OfType<XComment>();
-                
+
                 //get first comment which ends in a valid datetime as per DateTimeFormat
                 var dt = default(DateTime);
                 foreach (var comment in comments)
@@ -162,7 +218,7 @@ namespace VetMedData.NET
                 _vmdpid = CleanAndParse(raw, dt == default(DateTime) ? (DateTime?)null : dt);
             }
 
-            return _vmdpid;
+            return getTargetSpeciesForExpiredProducts ? await PopulateExpiredProductTargetSpecies(_vmdpid) : _vmdpid;
         }
 
     }

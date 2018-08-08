@@ -94,6 +94,7 @@ namespace VetMedData.NET
         public string MAHolder { get; set; }
         public string VMNo { get; set; }
         public string AuthorisationRoute { get; set; }
+        public IEnumerable<string> TargetSpecies { get; set; }
         public IEnumerable<string> ActiveSubstances { get; set; }
 
         public override string ToString()
@@ -109,7 +110,6 @@ namespace VetMedData.NET
         public IEnumerable<string> Distributors { get; set; }
         public DateTime DateOfIssue { get; set; }
         public string ControlledDrug { get; set; }
-        public IEnumerable<string> TargetSpecies { get; set; }
         public string DistributionCategory { get; set; }
         public string PharmaceuticalForm { get; set; }
         public string TherapeuticGroup { get; set; }
@@ -125,7 +125,6 @@ namespace VetMedData.NET
         public DateTime DateOfSuspension { get; set; }
         public DateTime DateOfIssue { get; set; }
         public string ControlledDrug { get; set; }
-        public IEnumerable<string> TargetSpecies { get; set; }
         public string DistributionCategory { get; set; }
         public string PharmaceuticalForm { get; set; }
         public string TherapeuticGroup { get; set; }
@@ -148,7 +147,6 @@ namespace VetMedData.NET
     {
         public DateTime DateOfIssue { get; set; }
         public string ControlledDrug { get; set; }
-        public IEnumerable<string> TargetSpecies { get; set; }
         public string DistributionCategory { get; set; }
         public string PharmaceuticalForm { get; set; }
         public string TherapeuticGroup { get; set; }
