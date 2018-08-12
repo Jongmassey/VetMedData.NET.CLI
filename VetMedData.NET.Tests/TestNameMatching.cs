@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VetMedData.NET;
+using VetMedData.NET.ProductMatching;
 
 namespace VetMedData.Tests
 {
