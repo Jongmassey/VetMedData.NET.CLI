@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VetMedData.NET;
+using VetMedData.NET.Util;
 
 namespace VetMedData.Tests
 {
