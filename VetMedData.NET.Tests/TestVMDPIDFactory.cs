@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VetMedData.NET;
+using VetMedData.NET.Model;
 using VetMedData.NET.Util;
 
 namespace VetMedData.Tests
@@ -38,7 +39,7 @@ namespace VetMedData.Tests
             foreach (var product in ap)
             {
                 //centralised-authorisation products have lots of properties missing
-                if (product.AuthorisationRoute.Equals("Centralised")){continue;}
+                if (product.AuthorisationRoute.Equals("Centralised")) { continue; }
 
                 //check all string properties populated
                 foreach (var property in product.GetType().GetProperties()
@@ -52,7 +53,11 @@ namespace VetMedData.Tests
                 //check all string list props populated
                 foreach (var property in typeof(Product).GetProperties().Where(p => p.PropertyType == typeof(IEnumerable<string>)))
                 {
-                    Assert.IsTrue(((IEnumerable<string>)property.GetValue(product)).Any(), $"Property {property.Name} empty for product {product}");
+                    //Assert.IsNotNull(property.GetValue(product), $"Property {property.Name} null for product {product}");
+                    if (property.GetValue(product) != null)
+                    {
+                        Assert.IsTrue(((IEnumerable<string>)property.GetValue(product)).Any(), $"Property {property.Name} empty for product {product}");
+                    }
                 }
             }
         }
@@ -61,13 +66,13 @@ namespace VetMedData.Tests
         public void TestProductPropertyAggregators()
         {
             var pid = VMDPIDFactory.GetVmdpid().Result;
-            foreach (var prop in typeof(VMDPID).GetProperties().Where(p=>p.PropertyType == typeof(IEnumerable<string>)))
+            foreach (var prop in typeof(VMDPID).GetProperties().Where(p => p.PropertyType == typeof(IEnumerable<string>)))
             {
-                var p = (IEnumerable<string>) prop.GetValue(pid);
-                Assert.IsNotNull(p,$"{prop.Name} is null");
-                Assert.IsTrue(p.Any(),$"{prop.Name} empty");
+                var p = (IEnumerable<string>)prop.GetValue(pid);
+                Assert.IsNotNull(p, $"{prop.Name} is null");
+                Assert.IsTrue(p.Any(), $"{prop.Name} empty");
             }
-            
+
         }
 
         [TestMethod]
@@ -75,7 +80,7 @@ namespace VetMedData.Tests
         {
             var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
             Assert.IsFalse(pid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
-                                                           ep.SPC_Link.ToLower().EndsWith(".docx")).Any(ep=>!ep.TargetSpecies.Any()));
+                                                           ep.SPC_Link.ToLower().EndsWith(".docx")).Any(ep => !ep.TargetSpecies.Any()));
         }
     }
 }
