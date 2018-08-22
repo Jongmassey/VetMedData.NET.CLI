@@ -1,10 +1,12 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using System.Collections.Generic;
+using iTextSharp.text.pdf;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Packaging;
 
 
 namespace VetMedData.NET.Util
@@ -25,9 +27,14 @@ namespace VetMedData.NET.Util
             }
 
             var doctext = sb.ToString();
+            return GetTargetSpeciesFromText(doctext);
+        }
+
+        private static string[] GetTargetSpeciesFromText(string plainText)
+        {
             var spRegex = new Regex(TargetSpeciesPattern
                 , RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            var m = spRegex.Match(doctext);
+            var m = spRegex.Match(plainText);
 
             return m.Value.Trim().Split(',').Select(s => s.Trim()).ToArray();
         }
@@ -42,6 +49,36 @@ namespace VetMedData.NET.Util
             s.Seek(0, SeekOrigin.Begin);
 
             return GetTargetSpecies(WordprocessingDocument.Open(s, false));
+        }
+
+        public static string GetPlainText(string pathToPdf)
+        {
+            
+            var pdf = new PdfReader(pathToPdf);
+            
+                var sb = new StringBuilder();
+                for (var i = 1; i < pdf.NumberOfPages; i++)
+                {
+                    var streamBytes = pdf.GetPageContent(i);
+                    var tokenizer = new PrTokeniser(new RandomAccessFileOrArray(streamBytes));
+                    
+                    while (tokenizer.NextToken())
+                    {
+                        if (tokenizer.TokenType == PrTokeniser.TK_STRING)
+                        {
+                            sb.Append(tokenizer.StringValue);
+                        }
+                    }
+
+                    sb.AppendLine();
+                    if (sb.ToString().Contains("ANNEX II"))
+                    {
+                        break;
+                    }
+                }
+            pdf.Close();
+            return sb.ToString();
+            
         }
 
         /// <summary> 

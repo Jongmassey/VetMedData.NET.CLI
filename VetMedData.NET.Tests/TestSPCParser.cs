@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,7 +15,6 @@ namespace VetMedData.Tests
         [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
         public void TestTargetSpeciesExtraction()
         {
-            //todo:refer to file within project
             const string pathtospc = @"TestFiles\TestSPCParser\SPC_91079.docx";
 
             var expectedoutput = new[]
@@ -27,6 +27,14 @@ namespace VetMedData.Tests
             Assert.IsTrue(intersectioncount == expectedoutput.Length, $"Intersection count:{intersectioncount}, expected 3");
         }
 
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
+        public void TestGetPdfPlainText()
+        {
+            const string pathtopdf = @"TestFiles\TestSPCParser\WC500067567.pdf";
 
+            Assert.IsTrue(File.Exists(pathtopdf), "test file not readable");
+            var pt = SPCParser.GetPlainText(pathtopdf);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(pt),"Plain text null or whitespace");
+        }
     }
 }
