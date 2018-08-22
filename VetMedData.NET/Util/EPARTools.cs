@@ -15,9 +15,9 @@ namespace VetMedData.NET.Util
         private const string EmaSearchUrl =
             @"index.jsp?curl=pages%2Fmedicines%2Flanding%2Fvet_epar_search.jsp&mid=WC0b01ac058001fa1c&searchTab=searchByKey&alreadyLoaded=true&isNewQuery=true&status=Authorised&status=Withdrawn&status=Suspended&status=Refused&keyword={prodname}&keywordSearch=Submit&searchType=name&taxonomyPath=&treeNumber=";
 
-        private static bool IsEPAR(string url)
+        public static bool IsEPAR(string url)
         {
-            return url.Contains(@"ema.europa.eu/ema");
+            return url.Contains(EmaBaseUri.ToString());
         }
 
         /// <summary>
