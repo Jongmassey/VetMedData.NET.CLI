@@ -20,7 +20,29 @@ namespace VetMedData.NET.Util
             return url.Contains(@"ema.europa.eu/ema");
         }
 
+        /// <summary>
+        /// Progressively reduce
+        /// </summary>
+        /// <param name="productName"></param>
+        /// <returns></returns>
         public static async Task<string[]> GetSearchResults(string productName)
+        {
+            var res = new string[0];
+
+            do
+            {
+                res = await GetSearchResultsInternal(productName);
+                productName = string.Join(' ', productName.Split(' ').Take(productName.Split(' ').Length - 1));
+                if (string.IsNullOrWhiteSpace(productName))
+                {
+                    break;
+                }
+            } while (res.Length == 0);
+
+            return res;
+        }
+
+        private static async Task<string[]> GetSearchResultsInternal(string productName)
         {
             using (var cli = new HttpClient())
             {

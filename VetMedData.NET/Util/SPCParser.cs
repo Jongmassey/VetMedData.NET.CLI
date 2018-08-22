@@ -16,6 +16,9 @@ namespace VetMedData.NET.Util
         private const string TargetSpeciesPattern
             = @"(?<=[0-9]\s*target species\s+)([^0-9]*)";
 
+        private const string UnbracketedAndPattern =
+            @"(?<!\(\w+ +)and(?! +\w+\))";
+
         public static string[] GetTargetSpecies(WordprocessingDocument d)
         {
             var sb = new StringBuilder();
@@ -30,13 +33,37 @@ namespace VetMedData.NET.Util
             return GetTargetSpeciesFromText(doctext);
         }
 
+        public static string[] GetTargetSpeciesFromPdf(string pathToPdf)
+        {
+            return GetTargetSpeciesFromText(GetPlainText(pathToPdf));
+        }
+
+        public static Dictionary<string, string[]> GetTargetSpeciesFromMultiProductPdf(string pathToPdf)
+        {
+            var outDic = new Dictionary<string,string[]>();
+            var pt = GetPlainText(pathToPdf);
+            var splitPt = pt.Split(new[] {"NAME OF THE VETERINARY MEDICINAL PRODUCT"},
+                StringSplitOptions.RemoveEmptyEntries);
+            const string secondSectionPattern = @"2\.";
+            foreach (var subdoc in splitPt.TakeLast(splitPt.Length-1))
+            {
+                var cleanedsubdoc = subdoc.Replace("en-GB", "").Replace("en-US","");
+                var name = cleanedsubdoc.Substring(0, Regex.Matches(cleanedsubdoc, secondSectionPattern)[0].Index).Trim();
+                outDic.Add(name,GetTargetSpeciesFromText(cleanedsubdoc));
+            }
+
+            return outDic;
+        }
+
         private static string[] GetTargetSpeciesFromText(string plainText)
         {
             var spRegex = new Regex(TargetSpeciesPattern
                 , RegexOptions.Compiled | RegexOptions.IgnoreCase);
             var m = spRegex.Match(plainText);
 
-            return m.Value.Trim().Split(',').Select(s => s.Trim()).ToArray();
+            return Regex.Replace(m.Value.Trim().ToLowerInvariant(), UnbracketedAndPattern, ",", RegexOptions.Compiled)
+                .Split(',')
+                .Select(s => s.Trim().Replace(".", "")).ToArray();
         }
 
         public static string[] GetTargetSpecies(string pathToSPC)

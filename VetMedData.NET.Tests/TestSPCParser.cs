@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Linq;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using VetMedData.NET;
 using VetMedData.NET.Util;
 
 namespace VetMedData.Tests
@@ -19,12 +15,13 @@ namespace VetMedData.Tests
 
             var expectedoutput = new[]
             {
-                "Horses","ponies","donkies and foals over four weeks of age."
+                "horses","ponies","donkies","foals over four weeks of age"
             };
-            
+
             var ts = SPCParser.GetTargetSpecies(pathtospc);
             var intersectioncount = ts.Intersect(expectedoutput).Count();
-            Assert.IsTrue(intersectioncount == expectedoutput.Length, $"Intersection count:{intersectioncount}, expected 3");
+            Assert.IsTrue(intersectioncount == expectedoutput.Length,
+                $"Intersection count:{intersectioncount}, expected {expectedoutput.Length}");
         }
 
         [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
@@ -32,9 +29,32 @@ namespace VetMedData.Tests
         {
             const string pathtopdf = @"TestFiles\TestSPCParser\WC500067567.pdf";
 
-            Assert.IsTrue(File.Exists(pathtopdf), "test file not readable");
             var pt = SPCParser.GetPlainText(pathtopdf);
-            Assert.IsFalse(string.IsNullOrWhiteSpace(pt),"Plain text null or whitespace");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(pt), "Plain text null or whitespace");
+        }
+
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
+        public void TestGetTargetSpeciesFromPDF()
+        {
+            const string pathtopdf = @"TestFiles\TestSPCParser\WC500067567.pdf";
+            var sp = SPCParser.GetTargetSpeciesFromPdf(pathtopdf);
+            Assert.IsNotNull(sp, "Nothing returned");
+            Assert.IsTrue(sp.Length == 1, $"Returned {sp.Length} species instead of 1");
+            Assert.IsTrue(sp[0].Equals("horse", StringComparison.InvariantCultureIgnoreCase), $"returned: {sp[0]} instead of horse");
+        }
+
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
+        public void TestGetTargetSpeciesFromMultiPDF()
+        {
+            const string pathtopdf = @"TestFiles\TestSPCParser\WC500065777.pdf";
+            var sp = SPCParser.GetTargetSpeciesFromMultiProductPdf(pathtopdf);
+            Assert.IsNotNull(sp, "null dictionary returned");
+            Assert.IsFalse(sp.Count == 0, "empty dictionary returned");
+            Assert.IsTrue(sp.ContainsKey("Metacam 20 mg/ml solution for injection for cattle, pigs and horses"), "product not found");
+            Assert.IsTrue(
+                sp["Metacam 20 mg/ml solution for injection for cattle, pigs and horses"]
+                    .Intersect(new[] { "cattle", "pigs", "horses" }).Count() == 3,
+                $"Unexpected species list returned:{string.Join(',', sp["Metacam 20 mg/ml solution for injection for cattle, pigs and horses"])}");
         }
     }
 }
