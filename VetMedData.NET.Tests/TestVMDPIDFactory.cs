@@ -82,5 +82,14 @@ namespace VetMedData.Tests
             Assert.IsFalse(pid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
                                                            ep.SPC_Link.ToLower().EndsWith(".docx")).Any(ep=>!ep.TargetSpecies.Any()));
         }
+
+        [TestMethod]
+        public void TestGetPIDWithEuropeanExpiredProductTargetSpecies()
+        {
+            var pid = VMDPIDFactory.GetVmdpid(false, true,true).Result;
+            Assert.IsFalse(pid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLowerInvariant().Contains("ema.europa.eu"))
+                .Any(ep => !ep.TargetSpecies.Any()));
+        }
+
     }
 }
