@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace VetMedData.NET.Model
 {
@@ -7,7 +6,6 @@ namespace VetMedData.NET.Model
     {
         public PackageType PackageType { get; set; }
         public float PackageSize { get; set; }
-        [JsonIgnore]
         public string DisplayName => $"{PackageSize} {PackageType}";
 
         public override string ToString()
