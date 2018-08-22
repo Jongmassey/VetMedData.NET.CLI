@@ -8,10 +8,12 @@ namespace VetMedData.NET.Util
     {
         private static EPARTools _eparTools;
         private static string _googleCustomSearchAPIKey;
+        private static string _googleCustomSearchCX;
 
         public EPARTools(IConfiguration conf)
         {
             _googleCustomSearchAPIKey = conf["GoogleAPISecrets:GoogleCustomSearchAPIKey"];
+            _googleCustomSearchCX = conf["GoogleAPISecrets:GoogleCustomSearchCX"];
         }
         public static EPARTools Get()
         {
