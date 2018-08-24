@@ -37,7 +37,7 @@ namespace VetMedData.NET.Util
         {
             return GetTargetSpeciesFromText(GetPlainText(pathToPdf));
         }
-
+        //todo: parse nested multi-product like dicural: http://www.ema.europa.eu/docs/en_GB/document_library/EPAR_-_Product_Information/veterinary/000031/WC500062810.pdf
         public static Dictionary<string, string[]> GetTargetSpeciesFromMultiProductPdf(string pathToPdf)
         {
             var outDic = new Dictionary<string,string[]>();
