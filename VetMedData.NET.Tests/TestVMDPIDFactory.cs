@@ -86,8 +86,10 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestGetPIDWithEuropeanExpiredProductTargetSpecies()
         {
-            var pid = VMDPIDFactory.GetVmdpid(false, true,true).Result;
-            Assert.IsFalse(pid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLowerInvariant().Contains("ema.europa.eu"))
+            var pid = VMDPIDFactory.GetVmdpid(false, false,true).Result;
+            Assert.IsFalse(pid.ExpiredProducts
+                .Where(ep => ep.SPC_Link.ToLowerInvariant()
+                    .Contains("ema.europa.eu"))
                 .Any(ep => !ep.TargetSpecies.Any()));
         }
 

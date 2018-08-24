@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -132,10 +133,10 @@ namespace VetMedData.NET.Util
             return ms;
         }
 
-        private static async Task<VMDPID> PopulateExpiredProductTargetSpecies(VMDPID inpid, bool includeEmaProducts = false)
+        private static async Task<VMDPID> PopulateExpiredProductTargetSpecies(VMDPID inpid)
         {
             foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
-                                                                           ep.SPC_Link.ToLower().EndsWith(".docx")))
+                                                                             ep.SPC_Link.ToLower().EndsWith(".docx")))
             {
                 var tdoc = "";
                 // ReSharper disable once RedundantAssignment
@@ -151,7 +152,7 @@ namespace VetMedData.NET.Util
 
                     using (var fs = File.OpenWrite(tdoc))
                     {
-                        GetHttpStream(expiredProduct.SPC_Link).Result.CopyTo(fs);
+                        (await GetHttpStream(expiredProduct.SPC_Link)).CopyTo(fs);
                         fs.Flush();
                     }
 
@@ -164,7 +165,7 @@ namespace VetMedData.NET.Util
                     File.Move(tf, tdocx);
                     using (var fs = File.OpenWrite(tdocx))
                     {
-                        GetHttpStream(expiredProduct.SPC_Link).Result.CopyTo(fs);
+                        (await GetHttpStream(expiredProduct.SPC_Link)).CopyTo(fs);
                     }
                 }
 
@@ -174,34 +175,52 @@ namespace VetMedData.NET.Util
                     expiredProduct.TargetSpecies = ts;
                 }
 
-                if (!string.IsNullOrEmpty(tdoc) && File.Exists(tdoc)) { File.Delete(tdoc); }
-                if (!string.IsNullOrEmpty(tdocx) && File.Exists(tdocx)) { File.Delete(tdocx); }
-            }
-            if (includeEmaProducts)
-            {
-                foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => EPARTools.IsEPAR(ep.SPC_Link)))
+                if (!string.IsNullOrEmpty(tdoc) && File.Exists(tdoc))
                 {
-                    var possibleTargetSpecies = new Dictionary<string, string[]>();
-                    var searchResults = await EPARTools.GetSearchResults(expiredProduct.Name);
-                    foreach (var result in searchResults)
-                    {
-                        var tf = Path.GetTempFileName();
-                        using (var tfs = File.OpenWrite(tf))
-                        {
-                            GetHttpStream(result).Result.CopyTo(tfs);
-                        }
+                    File.Delete(tdoc);
+                }
 
-                        var targetSpecies = SPCParser.GetTargetSpeciesFromMultiProductPdf(tf);
-                        foreach (var ts in targetSpecies)
-                        {
-                            possibleTargetSpecies[ts.Key] = ts.Value;
-                        }
-                        File.Delete(tf);
+                if (!string.IsNullOrEmpty(tdocx) && File.Exists(tdocx))
+                {
+                    File.Delete(tdocx);
+                }
+
+            }
+            return inpid;
+        }
+
+        private static async Task<VMDPID> PopulateExpiredProductTargetSpeciesFromEMA(VMDPID inpid)
+        {
+
+            foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => EPARTools.IsEPAR(ep.SPC_Link)))
+            {
+                var possibleTargetSpecies = new Dictionary<string, string[]>();
+                var searchResults = await EPARTools.GetSearchResults(expiredProduct.Name);
+                foreach (var result in searchResults)
+                {
+                    var tf = Path.GetTempFileName();
+                    using (var tfs = File.OpenWrite(tf))
+                    {
+                        (await GetHttpStream(result)).CopyTo(tfs);
                     }
 
+                    var targetSpecies = SPCParser.GetTargetSpeciesFromMultiProductPdf(tf);
+                    foreach (var ts in targetSpecies)
+                    {
+                        possibleTargetSpecies[ts.Key] = ts.Value;
+                    }
+                    File.Delete(tf);
+                }
+                if (possibleTargetSpecies.ContainsKey(expiredProduct.Name))
+                {
                     expiredProduct.TargetSpecies = possibleTargetSpecies[expiredProduct.Name];
                 }
+                else
+                {
+                    Debug.Write($"{expiredProduct.Name} Product not found");
+                }
             }
+
             return inpid;
         }
 
@@ -248,9 +267,23 @@ namespace VetMedData.NET.Util
                 _vmdpid = CleanAndParse(raw, dt == default(DateTime) ? (DateTime?)null : dt);
             }
 
-            return getTargetSpeciesForExpiredProducts
-                ? await PopulateExpiredProductTargetSpecies(_vmdpid, getTargetSpeciesForEuropeanExpiredProducts)
-                : _vmdpid;
+            if (getTargetSpeciesForExpiredProducts)
+            {
+                _vmdpid = await PopulateExpiredProductTargetSpecies(_vmdpid);
+            }
+
+            if (getTargetSpeciesForEuropeanExpiredProducts)
+            {
+                _vmdpid = await PopulateExpiredProductTargetSpeciesFromEMA(_vmdpid);
+            }
+
+            return _vmdpid;
+            //return getTargetSpeciesForExpiredProducts
+            //    ? await PopulateExpiredProductTargetSpecies(
+            //        getTargetSpeciesForEuropeanExpiredProducts ?
+            //            await PopulateExpiredProductTargetSpeciesFromEMA(_vmdpid) :
+            //            _vmdpid)
+            //    : _vmdpid;
         }
 
     }
