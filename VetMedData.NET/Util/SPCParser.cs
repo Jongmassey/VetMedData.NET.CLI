@@ -1,8 +1,9 @@
 ﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
-using System.Collections.Generic;
 using iTextSharp.text.pdf;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,8 @@ namespace VetMedData.NET.Util
     public static class SPCParser
     {
         private const string TargetSpeciesPattern
-            = @"(?<=[0-9]\s*target species\s+)([^0-9]*)";
+            // = @"(?<=[0-9]\s*target species\s+)([^0-9]*)";
+            = @"(?<=target species\s+)([^0-9]*)(?=4\.2)";
 
         private const string UnbracketedAndPattern =
             @"(?<!\(\w+ +)and(?! +\w+\))";
@@ -40,16 +42,22 @@ namespace VetMedData.NET.Util
         //todo: parse nested multi-product like dicural: http://www.ema.europa.eu/docs/en_GB/document_library/EPAR_-_Product_Information/veterinary/000031/WC500062810.pdf
         public static Dictionary<string, string[]> GetTargetSpeciesFromMultiProductPdf(string pathToPdf)
         {
-            var outDic = new Dictionary<string,string[]>();
+            var outDic = new Dictionary<string, string[]>();
             var pt = GetPlainText(pathToPdf);
-            var splitPt = pt.Split(new[] {"NAME OF THE VETERINARY MEDICINAL PRODUCT"},
+            var splitPt = pt.Split(new[] { "NAME OF THE VETERINARY MEDICINAL PRODUCT" },
                 StringSplitOptions.RemoveEmptyEntries);
-            const string secondSectionPattern = @"2\.";
-            foreach (var subdoc in splitPt.TakeLast(splitPt.Length-1))
+            const string secondSectionPattern = @"2\. ";
+            foreach (var subdoc in splitPt.TakeLast(splitPt.Length - 1))
             {
-                var cleanedsubdoc = subdoc.Replace("en-GB", "").Replace("en-US","");
-                var name = cleanedsubdoc.Substring(0, Regex.Matches(cleanedsubdoc, secondSectionPattern)[0].Index).Trim();
-                outDic.Add(name,GetTargetSpeciesFromText(cleanedsubdoc));
+                var cleanedsubdoc = subdoc.Replace("en-GB", "").Replace("en-US", "");
+                var names = cleanedsubdoc.Substring(0, Regex.Matches(cleanedsubdoc, secondSectionPattern)[0].Index)
+                    .Split(Environment.NewLine,StringSplitOptions.RemoveEmptyEntries).Select(n => n.Trim())
+                    .Where(n=>!string.IsNullOrWhiteSpace(n));
+                var ts = GetTargetSpeciesFromText(cleanedsubdoc);
+                foreach (var name in names)
+                {
+                    outDic.Add(name, ts);
+                }
             }
 
             return outDic;
@@ -62,6 +70,8 @@ namespace VetMedData.NET.Util
             var m = spRegex.Match(plainText);
 
             return Regex.Replace(m.Value.Trim().ToLowerInvariant(), UnbracketedAndPattern, ",", RegexOptions.Compiled)
+                .Replace('\n', ',')
+                .Replace("\r", "")
                 .Split(',')
                 .Select(s => s.Trim().Replace(".", "")).ToArray();
         }
@@ -80,32 +90,67 @@ namespace VetMedData.NET.Util
 
         public static string GetPlainText(string pathToPdf)
         {
-            
-            var pdf = new PdfReader(pathToPdf);
-            
-                var sb = new StringBuilder();
-                for (var i = 1; i < pdf.NumberOfPages; i++)
-                {
-                    var streamBytes = pdf.GetPageContent(i);
-                    var tokenizer = new PrTokeniser(new RandomAccessFileOrArray(streamBytes));
-                    
-                    while (tokenizer.NextToken())
-                    {
-                        if (tokenizer.TokenType == PrTokeniser.TK_STRING)
-                        {
-                            sb.Append(tokenizer.StringValue);
-                        }
-                    }
 
-                    sb.AppendLine();
-                    if (sb.ToString().Contains("ANNEX II"))
+            var pdf = new PdfReader(pathToPdf);
+
+            var sb = new StringBuilder();
+            for (var i = 1; i < pdf.NumberOfPages; i++)
+            {
+                var streamBytes = pdf.GetPageContent(i);
+                var tokeniser = new PrTokeniser(new RandomAccessFileOrArray(streamBytes));
+
+                while (tokeniser.NextToken())
+                {
+                    switch (tokeniser.TokenType)
                     {
-                        break;
+                        case PrTokeniser.TK_STRING:
+                            sb.Append(tokeniser.StringValue);
+                            break;
+                        case PrTokeniser.TK_NUMBER:
+                            if (tokeniser.StringValue.Equals("-1.159"))
+                            {
+                                sb.Append(Environment.NewLine);
+                            }
+                            break;
+                        case PrTokeniser.TK_OTHER:
+                            if (tokeniser.StringValue.Equals("BDC"))
+                            {
+                                sb.Append(Environment.NewLine);
+                            }
+                            break;
+
+                        //    switch (tokeniser.StringValue)
+                        //    {
+                        //       // case "ET":
+                        //        case "TD":
+                        //        case "Td":
+                        //        //case "Tm":
+                        //        //case "T*":
+                        //            //sb.Append(Environment.NewLine);
+                        //            sb.Append($"[{tokeniser.StringValue}]");
+                        //            break;
+                        //        default:
+                        //            break;
+                        //    }
+
+                        //    break;
+                        default:
+                            //if (Debugger.IsAttached) { sb.Append($"[{tokeniser.TokenType}-{tokeniser.StringValue}]"); }
+                            break;
                     }
                 }
+
+                sb.AppendLine();
+                if (sb.ToString().Contains("ANNEX II"))
+                {
+                    break;
+                }
+
+            }
+
             pdf.Close();
             return sb.ToString();
-            
+
         }
 
         /// <summary> 

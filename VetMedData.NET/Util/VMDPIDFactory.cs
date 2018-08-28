@@ -207,17 +207,40 @@ namespace VetMedData.NET.Util
                     var targetSpecies = SPCParser.GetTargetSpeciesFromMultiProductPdf(tf);
                     foreach (var ts in targetSpecies)
                     {
-                        possibleTargetSpecies[ts.Key] = ts.Value;
+                        possibleTargetSpecies[ts.Key.ToLowerInvariant()] = ts.Value;
                     }
                     File.Delete(tf);
                 }
-                if (possibleTargetSpecies.ContainsKey(expiredProduct.Name))
+
+                var productKey = expiredProduct.Name.ToLowerInvariant();
+
+                if (possibleTargetSpecies.ContainsKey(productKey))
                 {
-                    expiredProduct.TargetSpecies = possibleTargetSpecies[expiredProduct.Name];
+                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+                }
+                else if (possibleTargetSpecies.Keys.Any(k=>k.StartsWith(productKey)))
+                {
+                    productKey = possibleTargetSpecies.Keys.Single(k => k.StartsWith(productKey));
+                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+                }
+                else if (possibleTargetSpecies.Keys.Any(k => k.Replace(" ", "").Equals(productKey.Replace(" ", ""))))
+                {
+                    productKey =
+                        possibleTargetSpecies.Keys.Single(k => k.Replace(" ", "").Equals(productKey.Replace(" ", "")));
+                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+                }
+                else if (productKey.Contains(" for "))
+                {
+                    var forSplit = productKey.Split(new[] {"for"}, StringSplitOptions.None);
+                    var postFor = forSplit[forSplit.Length-1].Replace("and",",").Split(',')
+                        .Select(t=>t.Trim())
+                        .Where(t=>!string.IsNullOrWhiteSpace(t));
+
+                    expiredProduct.TargetSpecies = postFor.ToArray();
                 }
                 else
                 {
-                    Debug.Write($"{expiredProduct.Name} Product not found");
+                    Debug.WriteLine($"{expiredProduct.Name} Product not found");
                 }
             }
 
