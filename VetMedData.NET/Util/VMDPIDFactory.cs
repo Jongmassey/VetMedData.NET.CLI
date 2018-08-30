@@ -13,7 +13,7 @@ using VetMedData.NET.Model;
 namespace VetMedData.NET.Util
 {
     /// <summary>
-    /// Factory class for VMDPID, handles GETting and parsing of XML.
+    /// Factory class for <see cref="VMDPID"/>, handles GETting and parsing of XML.
     /// Has singleton-like behaviour for VMDPID class as to reduce
     /// number of HTTP GETs to VMD servers.
     /// </summary>
@@ -133,6 +133,12 @@ namespace VetMedData.NET.Util
             return ms;
         }
 
+        /// <summary>
+        /// Downloads SPC documents from VMD website for <see cref="ExpiredProduct"/>s, then uses
+        /// <see cref="SPCParser"/> to extract target species 
+        /// </summary>
+        /// <param name="inpid"></param>
+        /// <returns>Provided <see cref="VMDPID"/> with populated target species for expired products</returns>
         private static async Task<VMDPID> PopulateExpiredProductTargetSpecies(VMDPID inpid)
         {
             foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
@@ -189,6 +195,14 @@ namespace VetMedData.NET.Util
             return inpid;
         }
 
+        /// <summary>
+        /// Uses <see cref="EPARTools"/> to ascertain which <see cref="ExpiredProduct"/>s in a <see cref="VMDPID"/> are
+        /// EMA-authorised, search for an SPC document on the EMA website (as no direct links to documents
+        /// are provided in the PID) and then uses <see cref="SPCParser"/> to extract a dictionary of
+        /// products and target species. The product in question is matched to this dictionary by name.
+        /// </summary>
+        /// <param name="inpid"></param>
+        /// <returns>The provided <see cref="VMDPID"/> with EMA-authorised expired products' target species populated</returns>
         private static async Task<VMDPID> PopulateExpiredProductTargetSpeciesFromEMA(VMDPID inpid)
         {
 
@@ -214,21 +228,31 @@ namespace VetMedData.NET.Util
 
                 var productKey = expiredProduct.Name.ToLowerInvariant();
 
+                //exact name match
                 if (possibleTargetSpecies.ContainsKey(productKey))
                 {
                     expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
                 }
+
+                //todo:smarter nonexact matching
+
+                //name starts with
                 else if (possibleTargetSpecies.Keys.Any(k=>k.StartsWith(productKey)))
                 {
                     productKey = possibleTargetSpecies.Keys.Single(k => k.StartsWith(productKey));
                     expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
                 }
+
+                //resolve inconsistent spacing in name between VMD and EMA
                 else if (possibleTargetSpecies.Keys.Any(k => k.Replace(" ", "").Equals(productKey.Replace(" ", ""))))
                 {
                     productKey =
                         possibleTargetSpecies.Keys.Single(k => k.Replace(" ", "").Equals(productKey.Replace(" ", "")));
                     expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
                 }
+
+                //get the bit after "for" in the name. Risky - e.g. "solution for injection"
+                //could maybe do with species lookup for validation
                 else if (productKey.Contains(" for "))
                 {
                     var forSplit = productKey.Split(new[] {"for"}, StringSplitOptions.None);
@@ -301,12 +325,6 @@ namespace VetMedData.NET.Util
             }
 
             return _vmdpid;
-            //return getTargetSpeciesForExpiredProducts
-            //    ? await PopulateExpiredProductTargetSpecies(
-            //        getTargetSpeciesForEuropeanExpiredProducts ?
-            //            await PopulateExpiredProductTargetSpeciesFromEMA(_vmdpid) :
-            //            _vmdpid)
-            //    : _vmdpid;
         }
 
     }
