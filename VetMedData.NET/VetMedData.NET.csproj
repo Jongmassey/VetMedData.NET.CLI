@@ -12,10 +12,5 @@
     <PackageReference Include="SimMetrics.Net" Version="1.0.5" />
     <PackageReference Include="Spire.Doc" Version="6.7.13" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\..\.nuget\packages\newtonsoft.json\9.0.1\lib\netstandard1.0\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
 </Project>
