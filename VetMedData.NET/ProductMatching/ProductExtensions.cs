@@ -55,7 +55,7 @@ namespace VetMedData.NET.ProductMatching
             return outstr;
         }
 
-        public static ProductMatchResult GetMatchingResult(this Product product, Product referenceProduct, ProductMatchConfig cfg) => new ProductMatchResult
+        public static ProductSimilarityResult GetMatchingResult(this ProductMatchCandidate product, Product referenceProduct, ProductMatchConfig cfg) => new ProductSimilarityResult
         {
             InputProduct = product,
             ReferenceProduct = referenceProduct,

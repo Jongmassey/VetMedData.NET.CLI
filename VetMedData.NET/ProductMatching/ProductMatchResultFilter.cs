@@ -6,13 +6,13 @@ namespace VetMedData.NET.ProductMatching
 {
     public interface IProductMatchResultFilter
     {
-        //public Func<IEnumerable<ProductMatchResult>, IEnumerable<ProductMatchResult>> FilterFunc { get; set; }
-        IEnumerable<ProductMatchResult> FilterResults(IEnumerable<ProductMatchResult> results);
+        //public Func<IEnumerable<ProductSimilarityResult>, IEnumerable<ProductSimilarityResult>> FilterFunc { get; set; }
+        IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results);
     }
 
     public class MaximalSimilarityResultFilter : IProductMatchResultFilter
     {
-        public IEnumerable<ProductMatchResult> FilterResults(IEnumerable<ProductMatchResult> results)
+        public IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results)
         {
             return results.Where(r => r.ProductNameSimilarity == results.Select(rm => rm.ProductNameSimilarity).Max());
         }
@@ -27,7 +27,7 @@ namespace VetMedData.NET.ProductMatching
             _thresholdValue = thresholdValue;
         }
 
-        public IEnumerable<ProductMatchResult> FilterResults(IEnumerable<ProductMatchResult> results)
+        public IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results)
         {
             return results.Where(r => r.ProductNameSimilarity >= _thresholdValue);
         }
@@ -35,7 +35,7 @@ namespace VetMedData.NET.ProductMatching
 
     public class CommonTargetSpeciesFilter : IProductMatchResultFilter
     {
-        public IEnumerable<ProductMatchResult> FilterResults(IEnumerable<ProductMatchResult> results)
+        public IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results)
         {
             return results.Where(r =>
                 r.InputProduct.TargetSpecies != null &&
@@ -47,7 +47,7 @@ namespace VetMedData.NET.ProductMatching
 
     public class RandomSelectFilter : IProductMatchResultFilter
     {
-        public IEnumerable<ProductMatchResult> FilterResults(IEnumerable<ProductMatchResult> results)
+        public IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results)
         {
             var r = new Random();
             return new[] { results.ElementAt(r.Next(1, results.Count())) };

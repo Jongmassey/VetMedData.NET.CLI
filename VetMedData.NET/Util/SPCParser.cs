@@ -19,8 +19,8 @@ namespace VetMedData.NET.Util
     {
         //regex to get Target Species section of document
         private const string TargetSpeciesPattern
-            = @"(?<=target species\s+)([^0-9]*)(?=4\.2)";
-
+            //    = @"(?<=target species\s+)([^0-9]*)(?=4\.2)";
+            = @"(?<=target species[\r\n\s]+)(.*)(?=[\r\n\s]+4\.2)";
         //regex for "and" not within ()
         private const string UnbracketedAndPattern =
             @"(?<!\(\w+ +)and(?! +\w+\))";
@@ -104,10 +104,13 @@ namespace VetMedData.NET.Util
             var m = spRegex.Match(plainText);
 
             return Regex.Replace(m.Value.Trim().ToLowerInvariant(), UnbracketedAndPattern, ",", RegexOptions.Compiled)
+                .Replace(")","),")
                 .Replace('\n', ',')
                 .Replace("\r", "")
                 .Split(',')
-                .Select(s => s.Trim().Replace(".", "")).ToArray();
+                .Select(s => s.Trim().Replace(".", ""))
+                .Where(s=>!string.IsNullOrWhiteSpace(s))
+                .ToArray();
         }
 
         /// <summary>

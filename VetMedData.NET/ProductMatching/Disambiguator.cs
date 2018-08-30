@@ -5,7 +5,7 @@ namespace VetMedData.NET.ProductMatching
 {
     public interface IProductMatchDisambiguator
     {
-        ProductMatchResult DisambiguateMatchResults(IEnumerable<ProductMatchResult> results);
+        ProductSimilarityResult DisambiguateMatchResults(IEnumerable<ProductSimilarityResult> results);
     }
 
     public class HierarchicalFilterWithRandomFinalSelect : IProductMatchDisambiguator
@@ -17,7 +17,7 @@ namespace VetMedData.NET.ProductMatching
             _cfg = cfg;
         }
 
-        public ProductMatchResult DisambiguateMatchResults(IEnumerable<ProductMatchResult> results)
+        public ProductSimilarityResult DisambiguateMatchResults(IEnumerable<ProductSimilarityResult> results)
         {
             foreach (var filter in _cfg.Filters)
             {
@@ -44,7 +44,7 @@ namespace VetMedData.NET.ProductMatching
             _cfg = cfg;
         }
 
-        public ProductMatchResult DisambiguateMatchResults(IEnumerable<ProductMatchResult> results)
+        public ProductSimilarityResult DisambiguateMatchResults(IEnumerable<ProductSimilarityResult> results)
         {
             var resultDisambiguationScores = results.ToDictionary(r => r, r => 0d);
             foreach (var filterAndWeight in _cfg.FiltersAndWeights)

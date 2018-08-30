@@ -102,6 +102,17 @@ namespace VetMedData.Tests
                     .Contains("ema.europa.eu"))
                 .Any(ep => ep.TargetSpecies == null ||
                            !ep.TargetSpecies.Any()));
+
+            foreach (var expiredProduct in pid.ExpiredProducts
+                .Where(ep => ep.SPC_Link.ToLowerInvariant()
+                    .Contains("ema.europa.eu")))
+            {
+                foreach (var sp in expiredProduct.TargetSpecies)
+                {
+                    Debug.WriteLine($"{expiredProduct.Name}\t{sp}");
+                }
+            }
+
         }
 
     }
