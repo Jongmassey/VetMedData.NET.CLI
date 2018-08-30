@@ -20,6 +20,18 @@
     <None Update="TestFiles\TestSPCParser\SPC_91079.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestFiles\TestSPCParser\WC500062810.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\TestSPCParser\WC500064198.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\TestSPCParser\WC500065777.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestFiles\TestSPCParser\WC500067567.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestFiles\TestWordConverter\SPC_91079.DOC">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

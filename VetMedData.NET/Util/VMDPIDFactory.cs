@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -11,7 +13,7 @@ using VetMedData.NET.Model;
 namespace VetMedData.NET.Util
 {
     /// <summary>
-    /// Factory class for VMDPID, handles GETting and parsing of XML.
+    /// Factory class for <see cref="VMDPID"/>, handles GETting and parsing of XML.
     /// Has singleton-like behaviour for VMDPID class as to reduce
     /// number of HTTP GETs to VMD servers.
     /// </summary>
@@ -118,7 +120,7 @@ namespace VetMedData.NET.Util
         /// HTTP GETs XML PID from VMD as stream
         /// </summary>
         /// <returns></returns>
-        private static async Task<Stream> GetHTTPStream(string url)
+        private static async Task<Stream> GetHttpStream(string url)
         {
             var ms = new MemoryStream();
             using (var resp = await Client.GetAsync(url))
@@ -131,14 +133,21 @@ namespace VetMedData.NET.Util
             return ms;
         }
 
+        /// <summary>
+        /// Downloads SPC documents from VMD website for <see cref="ExpiredProduct"/>s, then uses
+        /// <see cref="SPCParser"/> to extract target species 
+        /// </summary>
+        /// <param name="inpid"></param>
+        /// <returns>Provided <see cref="VMDPID"/> with populated target species for expired products</returns>
         private static async Task<VMDPID> PopulateExpiredProductTargetSpecies(VMDPID inpid)
         {
             foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
-                                                                           ep.SPC_Link.ToLower().EndsWith(".docx")))
+                                                                             ep.SPC_Link.ToLower().EndsWith(".docx")))
             {
-                //Stream spcStream;
                 var tdoc = "";
+                // ReSharper disable once RedundantAssignment
                 var tdocx = "";
+                // ReSharper disable once RedundantAssignment
                 var tf = "";
                 var doc = expiredProduct.SPC_Link.EndsWith(".doc", StringComparison.InvariantCultureIgnoreCase);
                 if (doc)
@@ -149,13 +158,11 @@ namespace VetMedData.NET.Util
 
                     using (var fs = File.OpenWrite(tdoc))
                     {
-                        GetHTTPStream(expiredProduct.SPC_Link).Result.CopyTo(fs);
+                        (await GetHttpStream(expiredProduct.SPC_Link)).CopyTo(fs);
                         fs.Flush();
                     }
 
                     tdocx = WordConverter.ConvertDocToDocx(tdoc);
-
-
                 }
                 else
                 {
@@ -164,7 +171,7 @@ namespace VetMedData.NET.Util
                     File.Move(tf, tdocx);
                     using (var fs = File.OpenWrite(tdocx))
                     {
-                        GetHTTPStream(expiredProduct.SPC_Link).Result.CopyTo(fs);
+                        (await GetHttpStream(expiredProduct.SPC_Link)).CopyTo(fs);
                     }
                 }
 
@@ -174,12 +181,96 @@ namespace VetMedData.NET.Util
                     expiredProduct.TargetSpecies = ts;
                 }
 
-                if (!string.IsNullOrEmpty(tdoc) && File.Exists(tdoc)) { File.Delete(tdoc); }
-                if (!string.IsNullOrEmpty(tdocx) && File.Exists(tdocx)) { File.Delete(tdocx); }
+                if (!string.IsNullOrEmpty(tdoc) && File.Exists(tdoc))
+                {
+                    File.Delete(tdoc);
+                }
+
+                if (!string.IsNullOrEmpty(tdocx) && File.Exists(tdocx))
+                {
+                    File.Delete(tdocx);
+                }
+
+            }
+            return inpid;
+        }
+
+        /// <summary>
+        /// Uses <see cref="EPARTools"/> to ascertain which <see cref="ExpiredProduct"/>s in a <see cref="VMDPID"/> are
+        /// EMA-authorised, search for an SPC document on the EMA website (as no direct links to documents
+        /// are provided in the PID) and then uses <see cref="SPCParser"/> to extract a dictionary of
+        /// products and target species. The product in question is matched to this dictionary by name.
+        /// </summary>
+        /// <param name="inpid"></param>
+        /// <returns>The provided <see cref="VMDPID"/> with EMA-authorised expired products' target species populated</returns>
+        private static async Task<VMDPID> PopulateExpiredProductTargetSpeciesFromEMA(VMDPID inpid)
+        {
+
+            foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => EPARTools.IsEPAR(ep.SPC_Link)))
+            {
+                var possibleTargetSpecies = new Dictionary<string, string[]>();
+                var searchResults = await EPARTools.GetSearchResults(expiredProduct.Name);
+                foreach (var result in searchResults)
+                {
+                    var tf = Path.GetTempFileName();
+                    using (var tfs = File.OpenWrite(tf))
+                    {
+                        (await GetHttpStream(result)).CopyTo(tfs);
+                    }
+
+                    var targetSpecies = SPCParser.GetTargetSpeciesFromMultiProductPdf(tf);
+                    foreach (var ts in targetSpecies)
+                    {
+                        possibleTargetSpecies[ts.Key.ToLowerInvariant()] = ts.Value;
+                    }
+                    File.Delete(tf);
+                }
+
+                var productKey = expiredProduct.Name.ToLowerInvariant();
+
+                //exact name match
+                if (possibleTargetSpecies.ContainsKey(productKey))
+                {
+                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+                }
+
+                //todo:smarter nonexact matching
+
+                //name starts with
+                else if (possibleTargetSpecies.Keys.Any(k=>k.StartsWith(productKey)))
+                {
+                    productKey = possibleTargetSpecies.Keys.Single(k => k.StartsWith(productKey));
+                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+                }
+
+                //resolve inconsistent spacing in name between VMD and EMA
+                else if (possibleTargetSpecies.Keys.Any(k => k.Replace(" ", "").Equals(productKey.Replace(" ", ""))))
+                {
+                    productKey =
+                        possibleTargetSpecies.Keys.Single(k => k.Replace(" ", "").Equals(productKey.Replace(" ", "")));
+                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+                }
+
+                //get the bit after "for" in the name. Risky - e.g. "solution for injection"
+                //could maybe do with species lookup for validation
+                else if (productKey.Contains(" for "))
+                {
+                    var forSplit = productKey.Split(new[] {"for"}, StringSplitOptions.None);
+                    var postFor = forSplit[forSplit.Length-1].Replace("and",",").Split(',')
+                        .Select(t=>t.Trim())
+                        .Where(t=>!string.IsNullOrWhiteSpace(t));
+
+                    expiredProduct.TargetSpecies = postFor.ToArray();
+                }
+                else
+                {
+                    Debug.WriteLine($"{expiredProduct.Name} Product not found");
+                }
             }
 
             return inpid;
         }
+
 
         /// <summary>
         /// Gets copy of VMDPID.
@@ -193,14 +284,19 @@ namespace VetMedData.NET.Util
         /// Setting to true will HTTP get the SPC document for every expired product and
         /// will attempt to parse the TargetSpecies section into structured data.
         /// </param>
+        /// <param name="getTargetSpeciesForEuropeanExpiredProducts">
+        /// Setting to true will attempt to search for the product on the EMA website,
+        /// scrape the results and navigate to the pdf download link for the SPC. This
+        /// pdf file will be parsed to find the TargetSpecies section.</param>
         /// <returns></returns>
         public static async Task<VMDPID> GetVmdpid(bool overrideStoredInstance = false,
-            bool getTargetSpeciesForExpiredProducts = false)
+            bool getTargetSpeciesForExpiredProducts = false,
+            bool getTargetSpeciesForEuropeanExpiredProducts = false)
         {
             if (overrideStoredInstance || _vmdpid == null)
             {
                 //load incoming stream from HTTP as LINQ to XML element
-                var xe = XDocument.Load(await GetHTTPStream(VmdUrl));
+                var xe = XDocument.Load(await GetHttpStream(VmdUrl));
                 var comments = xe.DescendantNodes().OfType<XComment>();
 
                 //get first comment which ends in a valid datetime as per DateTimeFormat
@@ -218,7 +314,17 @@ namespace VetMedData.NET.Util
                 _vmdpid = CleanAndParse(raw, dt == default(DateTime) ? (DateTime?)null : dt);
             }
 
-            return getTargetSpeciesForExpiredProducts ? await PopulateExpiredProductTargetSpecies(_vmdpid) : _vmdpid;
+            if (getTargetSpeciesForExpiredProducts)
+            {
+                _vmdpid = await PopulateExpiredProductTargetSpecies(_vmdpid);
+            }
+
+            if (getTargetSpeciesForEuropeanExpiredProducts)
+            {
+                _vmdpid = await PopulateExpiredProductTargetSpeciesFromEMA(_vmdpid);
+            }
+
+            return _vmdpid;
         }
 
     }
