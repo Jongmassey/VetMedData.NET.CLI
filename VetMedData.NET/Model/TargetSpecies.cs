@@ -7,7 +7,8 @@ namespace VetMedData.NET.Model
     {
         public string CanonicalName { get; set; }
         public string[] Synonyms { get; set; }
-        public string[] Names => new[] { CanonicalName }.Union(Synonyms).ToArray();
+        public string[] Names =>
+            Synonyms == null ? new[] { CanonicalName } : new[] { CanonicalName }.Union(Synonyms).ToArray();
 
         public static IEnumerable<TargetSpecies> All { get; } = new[]
         {
@@ -67,5 +68,12 @@ namespace VetMedData.NET.Model
             new TargetSpecies {CanonicalName = "trout (rainbow)"},
             new TargetSpecies {CanonicalName = "turkeys"},
         };
+
+        public static IEnumerable<TargetSpecies> Find(string instr)
+        {
+            return All.Where(a =>
+                a.Names.Select(
+                    n => n.ToLowerInvariant().Split(' ').Intersect(instr.ToLowerInvariant().Split(' ')).Any()).Any());
+        }
     }
 }

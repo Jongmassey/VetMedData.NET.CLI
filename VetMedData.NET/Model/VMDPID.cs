@@ -96,6 +96,7 @@ namespace VetMedData.NET.Model
         public string AuthorisationRoute { get; set; }
         public IEnumerable<string> TargetSpecies { get; set; }
         public IEnumerable<string> ActiveSubstances { get; set; }
+        public IEnumerable<TargetSpecies> TargetSpeciesTyped { get; set; }
 
         public override string ToString()
         {

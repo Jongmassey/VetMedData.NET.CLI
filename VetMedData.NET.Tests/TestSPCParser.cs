@@ -28,6 +28,37 @@ namespace VetMedData.Tests
         }
 
         [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
+        public void TestTargetSpeciesExtractionFromDoc()
+        {
+            const string pathtospc = @"TestFiles\TestSPCParser\SPC_244480.doc";
+
+            var expectedoutput = new[]
+            {
+                "horses", "dogs", "cats"
+            };
+            var pathtodocx = WordConverter.ConvertDocToDocx(pathtospc);
+            var ts = SPCParser.GetTargetSpecies(pathtodocx);
+            var intersectioncount = ts.Intersect(expectedoutput).Count();
+            Assert.IsTrue(intersectioncount == expectedoutput.Length,
+                $"Intersection count:{intersectioncount}, expected {expectedoutput.Length}");
+        }
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
+        public void TestTargetSpeciesExtractionFromDocOldFormat()
+        {
+            const string pathtospc = @"TestFiles\TestSPCParser\SPC_124816.doc";
+
+            var expectedoutput = new[]
+            {
+                "cats"
+            };
+            var pathtodocx = WordConverter.ConvertDocToDocx(pathtospc);
+            var ts = SPCParser.GetTargetSpecies(pathtodocx);
+            var intersectioncount = ts.Intersect(expectedoutput).Count();
+            Assert.IsTrue(intersectioncount == expectedoutput.Length,
+                $"Intersection count:{intersectioncount}, expected {expectedoutput.Length}");
+        }
+
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
         public void TestGetPdfPlainText()
         {
             const string pathtopdf = @"TestFiles\TestSPCParser\WC500067567.pdf";

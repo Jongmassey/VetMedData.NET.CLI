@@ -17,10 +17,22 @@ namespace VetMedData.NET.Util
     // ReSharper disable once InconsistentNaming
     public static class SPCParser
     {
-        //regex to get Target Species section of document
-        private const string TargetSpeciesPattern
-            //    = @"(?<=target species\s+)([^0-9]*)(?=4\.2)";
-            = @"(?<=target species[\r\n\s]+)(.*)(?=[\r\n\s]+4\.2)";
+        //pattern for section preceding target species information
+        private const string TargetSpeciesLookbehind
+            = @"(?<=target species[;:\.]*\s+)";
+
+        //pattern for section containing target species information
+        private const string TargetSpeciesCaptureGroup
+            = @"([\s\w\(\)\.\,\-\–\≤\≥\&]*)";
+        
+        //pattern for section following target species information
+        private const string TargetSpeciesLookahead
+            = @"(?=\s+4\.2)*(?=\s*indications* for)";
+
+        //pattern for section following target species information (old-style document)
+        private const string TargetSpeciesLookaheadOldFormat
+            = @"(?=5\.2\s*therapeutic\s*indications)";
+
         //regex for "and" not within ()
         private const string UnbracketedAndPattern =
             @"(?<!\(\w+ +)and(?! +\w+\))";
@@ -68,7 +80,7 @@ namespace VetMedData.NET.Util
             var pt = GetPlainText(pathToPdf);
 
             //split plaintext into sub-SPC-document 
-            var splitPt = pt.Split(new[] {"NAME OF THE VETERINARY MEDICINAL PRODUCT"},
+            var splitPt = pt.Split(new[] { "NAME OF THE VETERINARY MEDICINAL PRODUCT" },
                 StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var subdoc in splitPt.TakeLast(splitPt.Length - 1))
@@ -99,17 +111,29 @@ namespace VetMedData.NET.Util
         /// <returns>string array of target species</returns>
         private static string[] GetTargetSpeciesFromText(string plainText)
         {
-            var spRegex = new Regex(TargetSpeciesPattern
+            var spRegex = new Regex(TargetSpeciesLookbehind +
+                                    TargetSpeciesCaptureGroup +
+                                    TargetSpeciesLookahead
                 , RegexOptions.Compiled | RegexOptions.IgnoreCase);
             var m = spRegex.Match(plainText);
 
+            if (string.IsNullOrWhiteSpace(m.Value))
+            {
+                spRegex = new Regex(TargetSpeciesLookbehind +
+                                    TargetSpeciesCaptureGroup +
+                                    TargetSpeciesLookaheadOldFormat
+                    , RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                m = spRegex.Match(plainText);
+            }
+
             return Regex.Replace(m.Value.Trim().ToLowerInvariant(), UnbracketedAndPattern, ",", RegexOptions.Compiled)
-                .Replace(")","),")
+                .Replace(")", "),")
                 .Replace('\n', ',')
                 .Replace("\r", "")
                 .Split(',')
                 .Select(s => s.Trim().Replace(".", ""))
-                .Where(s=>!string.IsNullOrWhiteSpace(s))
+                .Where(s => !string.IsNullOrWhiteSpace(s)
+                && !decimal.TryParse(s, out _))
                 .ToArray();
         }
 

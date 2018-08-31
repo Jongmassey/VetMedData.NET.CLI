@@ -38,7 +38,6 @@ namespace VetMedData.NET.Util
         /// <returns>Instance of VMDPID containing cleaned data from raw</returns>
         private static VMDPID CleanAndParse(VMDPID_Raw raw, DateTime? createdDateTime)
         {
-
             var output = new VMDPID
             {
                 //TODO: refactor repetitive product processing logic
@@ -113,7 +112,18 @@ namespace VetMedData.NET.Util
 
             };
 
+            foreach (var product in output.AllProducts)
+            {
+                PopulateStaticTypedTargetSpecies(product);
+            }
+
             return output;
+        }
+
+        private static void PopulateStaticTypedTargetSpecies(Product p)
+        {
+            if (p.TargetSpecies == null || !p.TargetSpecies.Any()) { return; }
+            p.TargetSpeciesTyped = p.TargetSpecies.SelectMany(TargetSpecies.Find).Distinct();
         }
 
         /// <summary>
@@ -191,6 +201,7 @@ namespace VetMedData.NET.Util
                     File.Delete(tdocx);
                 }
 
+                PopulateStaticTypedTargetSpecies(expiredProduct);
             }
             return inpid;
         }
@@ -237,7 +248,7 @@ namespace VetMedData.NET.Util
                 //todo:smarter nonexact matching
 
                 //name starts with
-                else if (possibleTargetSpecies.Keys.Any(k=>k.StartsWith(productKey)))
+                else if (possibleTargetSpecies.Keys.Any(k => k.StartsWith(productKey)))
                 {
                     productKey = possibleTargetSpecies.Keys.Single(k => k.StartsWith(productKey));
                     expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
@@ -255,10 +266,10 @@ namespace VetMedData.NET.Util
                 //could maybe do with species lookup for validation
                 else if (productKey.Contains(" for "))
                 {
-                    var forSplit = productKey.Split(new[] {"for"}, StringSplitOptions.None);
-                    var postFor = forSplit[forSplit.Length-1].Replace("and",",").Split(',')
-                        .Select(t=>t.Trim())
-                        .Where(t=>!string.IsNullOrWhiteSpace(t));
+                    var forSplit = productKey.Split(new[] { "for" }, StringSplitOptions.None);
+                    var postFor = forSplit[forSplit.Length - 1].Replace("and", ",").Split(',')
+                        .Select(t => t.Trim())
+                        .Where(t => !string.IsNullOrWhiteSpace(t));
 
                     expiredProduct.TargetSpecies = postFor.ToArray();
                 }
@@ -266,9 +277,33 @@ namespace VetMedData.NET.Util
                 {
                     Debug.WriteLine($"{expiredProduct.Name} Product not found");
                 }
+                PopulateStaticTypedTargetSpecies(expiredProduct);
             }
 
             return inpid;
+        }
+
+        /// <summary>
+        /// Helper method designed for testing to download SPC document
+        /// </summary>
+        /// <param name="p"><see cref="Product"/> to get SPC link for</param>
+        /// <returns>Path to downloaded file in temp folder</returns>
+        public static async Task<string> GetSPC(Product p)
+        {
+            var uri = ((ExpiredProduct)p).SPC_Link;
+
+            var tf = Path.GetTempPath() +
+                     Path.DirectorySeparatorChar +
+                    uri.Split('/')[uri.Split('/').Length - 1];
+            if (!File.Exists(tf))
+            {
+                using (var fs = File.OpenWrite(tf))
+                {
+                    (await GetHttpStream(uri)).CopyTo(fs);
+                }
+            }
+
+            return tf;
         }
 
 
@@ -326,6 +361,7 @@ namespace VetMedData.NET.Util
 
             return _vmdpid;
         }
+
 
     }
 }
