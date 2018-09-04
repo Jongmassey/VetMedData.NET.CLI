@@ -55,13 +55,13 @@ namespace VetMedData.NET.ProductMatching
             return outstr;
         }
 
-        public static ProductMatchResult GetMatchingResult(this Product product, Product referenceProduct, ProductMatchConfig cfg) => new ProductMatchResult
+        public static ProductSimilarityResult GetMatchingResult(this ActionedProduct product, ReferenceProduct referenceProduct, ProductMatchConfig cfg) => new ProductSimilarityResult
         {
             InputProduct = product,
             ReferenceProduct = referenceProduct,
             ProductNameSimilarity =
                     new ProductNameMetric(cfg.NameMetricConfig)
-                        .GetSimilarity(product.Name, referenceProduct.Name)
+                        .GetSimilarity(product.Product.Name, referenceProduct.Name)
         };
     }
 }

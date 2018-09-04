@@ -10,6 +10,7 @@ namespace VetMedData.Tests
     [TestClass]
     public class TestVMDPIDFactory
     {
+       // private readonly string[] _malformedProductVmNos = { @"13907/4001" };
         [TestMethod]
         public void TestGetPID()
         {
@@ -51,7 +52,7 @@ namespace VetMedData.Tests
                 }
 
                 //check all string list props populated
-                foreach (var property in typeof(Product).GetProperties()
+                foreach (var property in typeof(ReferenceProduct).GetProperties()
                     .Where(p => p.PropertyType == typeof(IEnumerable<string>)))
                 {
                     if (typeof(ExpiredProduct) == product.GetType()
@@ -77,11 +78,82 @@ namespace VetMedData.Tests
         }
 
         [TestMethod]
+        public void TestTargetSpeciesExtractionLocal()
+        {
+            var pid = VMDPIDFactory.GetVmdpid().Result;
+            foreach (var ep in pid.ExpiredProducts.Where(ep=>!EPARTools.IsEPAR(ep.SPC_Link)))
+            {
+                var spc = VMDPIDFactory.GetSPC(ep).Result;
+                Debug.WriteLine(spc);
+                spc = spc.ToLowerInvariant().EndsWith(".doc")? WordConverter.ConvertDocToDocx(spc): spc;
+                var ts = SPCParser.GetTargetSpecies(spc);
+                Assert.IsNotNull(ts,$"null ts for {ep.Name}, {spc}");
+                Assert.IsTrue(ts.Any(),$"empty ts for {ep.Name}, {spc}");
+                Assert.IsFalse(ts.Any(string.IsNullOrWhiteSpace),$"blank species for {ep.Name}, {spc}");
+            }
+        }
+
+        [TestMethod]
+        public void TestStaticTypingOfTargetSpecies()
+        {
+            var pid = VMDPIDFactory.GetVmdpid().Result;
+            foreach (var p in pid.AllProducts)
+            {
+                if (p.GetType() == typeof(ExpiredProduct)) continue;
+                Assert.IsTrue(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any(),
+                    $"Non-expired with un-filled strongly tped target species for {p.Name}");
+            }
+        }
+
+        [TestMethod]
+        public void TestStaticTypingOfTargetSpeciesExpiredProducts()
+        {
+            var pid = VMDPIDFactory.GetVmdpid(false,true).Result;
+            foreach (var p in pid.AllProducts)
+            {
+                if (p.GetType() != typeof(ExpiredProduct)
+                    || EPARTools.IsEPAR(((ExpiredProduct)p).SPC_Link)
+                    //|| _malformedProductVmNos.Contains(p.VMNo)
+                    ) continue;
+                if (!(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any()))
+                {
+                    Debug.WriteLine(string.Join(';', p.TargetSpecies));
+                }
+                Assert.IsTrue(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any(),
+                    $"Expired product with un-filled strongly tped target species for {p.Name}"
+                    + $"from {string.Join(';', p.TargetSpecies)}");
+            }
+        }
+
+        [TestMethod]
+        public void TestStaticTypingOfTargetSpeciesEmaLicensedExpiredProducts()
+        {
+            var pid = VMDPIDFactory.GetVmdpid(false, false, true).Result;
+            foreach (var p in pid.AllProducts)
+            {
+                if (p.GetType() != typeof(ExpiredProduct)
+                    || !EPARTools.IsEPAR(((ExpiredProduct)p).SPC_Link)
+                    ) continue;
+                if (!(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any()))
+                {
+                    Debug.WriteLine(string.Join(';',p.TargetSpecies));
+                }
+
+                Assert.IsTrue(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any(),
+                    $"EMA-licensed expired product with un-filled strongly tped target species for {p.Name}" +
+                    $"from {string.Join(';',p.TargetSpecies)}");
+            }
+        }
+
+        [TestMethod]
         public void TestGetPIDWithExpiredProductTargetSpecies()
         {
             var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
-            Assert.IsFalse(pid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
-                                                           ep.SPC_Link.ToLower().EndsWith(".docx")).Any(ep => !ep.TargetSpecies.Any()));
+            Assert.IsFalse(pid.ExpiredProducts
+                //.Where(ep=>!_malformedProductVmNos.Contains(ep.VMNo))
+                                                .Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
+                                                           ep.SPC_Link.ToLower().EndsWith(".docx"))
+                                                .Any(ep => !ep.TargetSpecies.Any()));
         }
 
         [TestMethod]
@@ -102,6 +174,17 @@ namespace VetMedData.Tests
                     .Contains("ema.europa.eu"))
                 .Any(ep => ep.TargetSpecies == null ||
                            !ep.TargetSpecies.Any()));
+
+            foreach (var expiredProduct in pid.ExpiredProducts
+                .Where(ep => ep.SPC_Link.ToLowerInvariant()
+                    .Contains("ema.europa.eu")))
+            {
+                foreach (var sp in expiredProduct.TargetSpecies)
+                {
+                    Debug.WriteLine($"{expiredProduct.Name}\t{sp}");
+                }
+            }
+
         }
 
     }

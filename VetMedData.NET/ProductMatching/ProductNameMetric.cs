@@ -34,6 +34,7 @@ namespace VetMedData.NET.ProductMatching
                 for (var bIndex = 0; bIndex < bTokens.Count; bIndex++)
                 {
                     var sim = _config.InnerMetric.GetSimilarity(aTokens[aIndex], bTokens[bIndex]);
+                    // ReSharper disable once InvertIf
                     if (sim > maxSim)
                     {
                         maxSim = sim;

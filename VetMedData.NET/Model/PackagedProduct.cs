@@ -8,8 +8,6 @@ namespace VetMedData.NET.Model
     /// </summary>
     public class AdministeredProduct : PackagedProduct
     {
-        public DateTime AdministeredDateTime { get; set; }
-        public string AdministeredBy { get; set; }
         public string ReasonForAdministration { get; set; }
         public double ProportionOfPackageAdministered { get; set; }
     }
@@ -18,11 +16,18 @@ namespace VetMedData.NET.Model
     /// <summary>
     /// Record of sale of packaged product
     /// </summary>
-    public class SoldProduct : PackagedProduct
+    public class SoldProduct : ActionedProduct
     {
-        public DateTime SoldDateTime { get; set; }
-        public string SoldBy { get; set; }
+
     }
+
+    public class ActionedProduct : PackagedProduct
+    {
+        public DateTime ActionDate { get; set; }
+        public string ActionedBy { get; set; }
+        public string[] TargetSpecies { get; set; }
+    }
+
 
     /// <summary>
     /// Properties of package of a product

@@ -28,6 +28,37 @@ namespace VetMedData.Tests
         }
 
         [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
+        public void TestTargetSpeciesExtractionFromDoc()
+        {
+            const string pathtospc = @"TestFiles\TestSPCParser\SPC_244480.doc";
+
+            var expectedoutput = new[]
+            {
+                "horses", "dogs", "cats"
+            };
+            var pathtodocx = WordConverter.ConvertDocToDocx(pathtospc);
+            var ts = SPCParser.GetTargetSpecies(pathtodocx);
+            var intersectioncount = ts.Intersect(expectedoutput).Count();
+            Assert.IsTrue(intersectioncount == expectedoutput.Length,
+                $"Intersection count:{intersectioncount}, expected {expectedoutput.Length}");
+        }
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
+        public void TestTargetSpeciesExtractionFromDocOldFormat()
+        {
+            const string pathtospc = @"TestFiles\TestSPCParser\SPC_124816.doc";
+
+            var expectedoutput = new[]
+            {
+                "cats"
+            };
+            var pathtodocx = WordConverter.ConvertDocToDocx(pathtospc);
+            var ts = SPCParser.GetTargetSpecies(pathtodocx);
+            var intersectioncount = ts.Intersect(expectedoutput).Count();
+            Assert.IsTrue(intersectioncount == expectedoutput.Length,
+                $"Intersection count:{intersectioncount}, expected {expectedoutput.Length}");
+        }
+
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
         public void TestGetPdfPlainText()
         {
             const string pathtopdf = @"TestFiles\TestSPCParser\WC500067567.pdf";
@@ -65,21 +96,12 @@ namespace VetMedData.Tests
         [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
         public void TestDicuralParsing()
         {
-            var names = new List<string>();
             const string pathToPdf = @"TestFiles\TestSPCParser\WC500062810.pdf";
-            var pt = SPCParser.GetPlainText(pathToPdf);
-            var splitPt = pt.Split(new[] { "NAME OF THE VETERINARY MEDICINAL PRODUCT" },
-                StringSplitOptions.RemoveEmptyEntries);
-            const string secondSectionPattern = @"2\. ";
-            foreach (var subdoc in splitPt.TakeLast(splitPt.Length - 1))
-            {
-                var cleanedsubdoc = subdoc.Replace("en-GB", "").Replace("en-US", "");
-                var name = cleanedsubdoc.Substring(0, Regex.Matches(cleanedsubdoc, secondSectionPattern)[0].Index)
-                    .Trim().Split(Environment.NewLine);
-                Debug.WriteLine(name);
-                names.AddRange(name);
-            }
-            Assert.IsTrue(names.Count == 6, $"Names emitted:{names.Count}");
+            var ts = SPCParser.GetTargetSpeciesFromMultiProductPdf(pathToPdf);
+            Assert.IsTrue(ts.Keys.Count == 6, $"6 product names should be returned: {ts.Keys.Count}");
+            Assert.IsTrue(ts.All(k => k.Value != null && k.Value.Length > 0), "Empty target species array returned");
+            Assert.IsFalse(ts.Values.SelectMany(v => v).Any(string.IsNullOrWhiteSpace), "Blank target species returned");
+            Assert.IsTrue(ts.Where(kv => kv.Key.Contains("and")).All(kv => kv.Value.Length > 1), "multi-species product has single species");
         }
 
         [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
@@ -88,7 +110,9 @@ namespace VetMedData.Tests
             const string pathToPdf = @"TestFiles\TestSPCParser\WC500064198.pdf";
             var ts = SPCParser.GetTargetSpeciesFromMultiProductPdf(pathToPdf);
             Assert.IsTrue(ts.Keys.Count==6,$"6 product names should be returned: {ts.Keys.Count}");
+            Assert.IsTrue(ts.All(k=>k.Value != null && k.Value.Length>0),"Empty target species array returned");
             Assert.IsFalse(ts.Values.SelectMany(v=>v).Any(string.IsNullOrWhiteSpace),"Blank target species returned");
+            Assert.IsTrue(ts.Where(kv => kv.Key.Contains("and")).All(kv => kv.Value.Length > 1), "multi-species product has single species");
         }
     }
 }

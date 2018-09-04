@@ -10,6 +10,7 @@ namespace VetMedData.NET.Model
     /// data access methods.
     /// </summary>
 
+    [Serializable]
     public class VMDPID
     {
         public DateTime CreatedDateTime { get; set; }
@@ -25,10 +26,15 @@ namespace VetMedData.NET.Model
         /// <summary>
         /// Unions together all product types 
         /// </summary>
-        public IEnumerable<Product> AllProducts => CurrentlyAuthorisedProducts
-            .Union(SuspendedProducts.Select(s => (Product)s))
-            .Union(ExpiredProducts.Select(s => (Product)s))
-            .Union(HomoeopathicProducts.Select(s => (Product)s));
+        public IEnumerable<ReferenceProduct> AllProducts => RealProducts
+            .Union(HomoeopathicProducts.Select(s => (ReferenceProduct)s));
+
+        /// <summary>
+        /// Unions together all product types except Homoeopathic
+        /// </summary>
+        public IEnumerable<ReferenceProduct> RealProducts => CurrentlyAuthorisedProducts
+            .Union(SuspendedProducts.Select(s => (ReferenceProduct)s))
+            .Union(ExpiredProducts.Select(s => (ReferenceProduct)s));
 
         /// <summary>
         /// Unique list of all Pharmaceutical Forms across all products
@@ -56,7 +62,6 @@ namespace VetMedData.NET.Model
             .Union(HomoeopathicProducts.Select(s => s.AuthorisationRoute))
             .Distinct();
 
-
         /// <summary>
         /// Unique list of all Therapeutic Groups across all products
         /// </summary>
@@ -82,34 +87,60 @@ namespace VetMedData.NET.Model
             .Union(HomoeopathicProducts.SelectMany(s => s.TargetSpecies))
             .Distinct();
 
-
     }
 
     /// <summary>
-    /// Defines properties common to all product types
+    /// Defines properties common to all reference product types
     /// </summary>
-    public abstract class Product
+    [Serializable]
+    public abstract class ReferenceProduct :Product
     {
-        public string Name { get; set; }
         public string MAHolder { get; set; }
         public string VMNo { get; set; }
         public string AuthorisationRoute { get; set; }
         public IEnumerable<string> TargetSpecies { get; set; }
         public IEnumerable<string> ActiveSubstances { get; set; }
+        public IEnumerable<TargetSpecies> TargetSpeciesTyped { get; set; }
+        public DateTime DateOfIssue { get; set; }
 
         public override string ToString()
         {
             return $"{GetType()}: Name:{Name} VMNo:{VMNo}";
         }
+
+        public Tuple<DateTime, DateTime> GetProductActiveRange()
+        {
+            DateTime endDate;
+            //if (p.GetType() == typeof(CurrentlyAuthorisedProduct) || p.GetType() == typeof(HomoeopathicProduct))
+            //{
+            //    endDate = DateTime.Now;
+            //}
+
+            if (this.GetType() == typeof(ExpiredProduct))
+            {
+                endDate = ((ExpiredProduct)this).DateofExpiration;
+            }
+
+            else if (this.GetType() == typeof(SuspendedProduct))
+            {
+                endDate = ((SuspendedProduct)this).DateOfSuspension;
+            }
+            else
+            {
+                endDate = DateTime.Now;
+            }
+            return new Tuple<DateTime, DateTime>(this.DateOfIssue, endDate);
+        }
     }
     /// <inheritdoc />
     /// <summary>
-    /// Product with a current, active marketing authorisation
+    /// ReferenceProduct with a current, active marketing authorisation
     /// </summary>
-    public class CurrentlyAuthorisedProduct : Product
+    [Serializable]
+    public class CurrentlyAuthorisedProduct : ReferenceProduct
     {
         public IEnumerable<string> Distributors { get; set; }
-        public DateTime DateOfIssue { get; set; }
+        //public DateTime DateOfIssue { get; set; }
         public string ControlledDrug { get; set; }
         public string DistributionCategory { get; set; }
         public string PharmaceuticalForm { get; set; }
@@ -120,12 +151,13 @@ namespace VetMedData.NET.Model
     }
     /// <inheritdoc />
     /// <summary>
-    /// Product whose marketing authorisation has been suspended
+    /// ReferenceProduct whose marketing authorisation has been suspended
     /// </summary>
-    public class SuspendedProduct : Product
+    [Serializable]
+    public class SuspendedProduct : ReferenceProduct
     {
         public DateTime DateOfSuspension { get; set; }
-        public DateTime DateOfIssue { get; set; }
+       // public DateTime DateOfIssue { get; set; }
         public string ControlledDrug { get; set; }
         public string DistributionCategory { get; set; }
         public string PharmaceuticalForm { get; set; }
@@ -134,10 +166,12 @@ namespace VetMedData.NET.Model
         public string UKPAR_Link { get; set; }
         public string PAAR_Link { get; set; }
     }
+    /// <inheritdoc />
     /// <summary>
-    /// Product whose marketing authorisation has expired
+    /// ReferenceProduct whose marketing authorisation has expired
     /// </summary>
-    public class ExpiredProduct : Product
+    [Serializable]
+    public class ExpiredProduct : ReferenceProduct
     {
         public DateTime DateofExpiration { get; set; }
         public string SPC_Link { get; set; }
@@ -146,9 +180,10 @@ namespace VetMedData.NET.Model
     /// <summary>
     /// Authorised homoepathic product
     /// </summary>
-    public class HomoeopathicProduct : Product
+    [Serializable]
+    public class HomoeopathicProduct : ReferenceProduct
     {
-        public DateTime DateOfIssue { get; set; }
+        //public DateTime DateOfIssue { get; set; }
         public string ControlledDrug { get; set; }
         public string DistributionCategory { get; set; }
         public string PharmaceuticalForm { get; set; }

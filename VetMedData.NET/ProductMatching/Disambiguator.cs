@@ -5,7 +5,7 @@ namespace VetMedData.NET.ProductMatching
 {
     public interface IProductMatchDisambiguator
     {
-        ProductMatchResult DisambiguateMatchResults(IEnumerable<ProductMatchResult> results);
+        ProductSimilarityResult DisambiguateMatchResults(IEnumerable<ProductSimilarityResult> results);
     }
 
     public class HierarchicalFilterWithRandomFinalSelect : IProductMatchDisambiguator
@@ -17,21 +17,24 @@ namespace VetMedData.NET.ProductMatching
             _cfg = cfg;
         }
 
-        public ProductMatchResult DisambiguateMatchResults(IEnumerable<ProductMatchResult> results)
+        public ProductSimilarityResult DisambiguateMatchResults(IEnumerable<ProductSimilarityResult> results)
         {
-            foreach (var filter in _cfg.Filters)
-            {
-                results =
-                    results.Count() > 1 ?
-                        filter.FilterResults(results).Any() ?
-                            filter.FilterResults(results) :
-                            results :
-                        results;
-            }
+            results = _cfg.Filters.Aggregate(results,
+                (current, filter) =>
+                {
+                    var productSimilarityResults = current as ProductSimilarityResult[] ?? current.ToArray();
+                    return (productSimilarityResults.Count() > 1
+                        ? filter.FilterResults(productSimilarityResults).Any()
+                            ?
+                            filter.FilterResults(productSimilarityResults)
+                            : productSimilarityResults
+                        : productSimilarityResults);
+                });
 
-            return results.Count() > 1 ?
-                new RandomSelectFilter().FilterResults(results).Single() :
-                results.Single();
+            var similarityResults = results as ProductSimilarityResult[] ?? results.ToArray();
+            return similarityResults.Length > 1 ?
+                new RandomSelectFilter().FilterResults(similarityResults).Single() :
+                similarityResults.Single();
         }
     }
 
@@ -44,7 +47,7 @@ namespace VetMedData.NET.ProductMatching
             _cfg = cfg;
         }
 
-        public ProductMatchResult DisambiguateMatchResults(IEnumerable<ProductMatchResult> results)
+        public ProductSimilarityResult DisambiguateMatchResults(IEnumerable<ProductSimilarityResult> results)
         {
             var resultDisambiguationScores = results.ToDictionary(r => r, r => 0d);
             foreach (var filterAndWeight in _cfg.FiltersAndWeights)
