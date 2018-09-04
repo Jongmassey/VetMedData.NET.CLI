@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using VetMedData.NET;
+using VetMedData.NET.Model;
 using VetMedData.NET.ProductMatching;
+using VetMedData.NET.Util;
 
 namespace VetMedData.Tests
 {
@@ -33,6 +35,20 @@ namespace VetMedData.Tests
             var sim = pnm.GetSimilarity(testStringPair[0], testStringPair[1]);
             Assert.IsTrue(0.9d == sim ,
                 $"Strings: {testStringPair[0]},{testStringPair[1]} returned {sim} instead of 1");
+        }
+
+        [TestMethod]
+        public void TestProductMatchRunner()
+        {
+            var cfg = new DefaultProductMatchConfig();
+            var pmr = new ProductMatchRunner(cfg);
+            //var pid = VMDPIDFactory.GetVmdpid(true, true, true).Result;
+            var pid = PersistentPID.Get(true,true);
+            var ap = new SoldProduct {TargetSpecies = new[] {"cattle"}, Product = new Product {Name = "metacam"},ActionDate = DateTime.Now};
+            var res = pmr.GetMatch(ap, pid.RealProducts);
+            Assert.IsNotNull(res);
+            Assert.IsTrue(res.ReferenceProduct.Name.StartsWith("metacam",StringComparison.InvariantCultureIgnoreCase));
+            Assert.IsTrue(res.ReferenceProduct.TargetSpecies.Any(ts=>ts.Equals("cattle", StringComparison.InvariantCultureIgnoreCase)));
         }
     }
 }

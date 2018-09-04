@@ -44,69 +44,69 @@ namespace VetMedData.NET.Util
                 CurrentlyAuthorisedProducts = raw.CurrentAuthorisedProducts.Select(rcp =>
                     new CurrentlyAuthorisedProduct
                     {
-                        ActiveSubstances = rcp.ActiveSubstances.Split(',').Select(a => a.Trim()),
-                        AuthorisationRoute = rcp.AuthorisationRoute.Trim(),
+                        ActiveSubstances = rcp.ActiveSubstances.Split(',').Select(a => a.Trim().ToLowerInvariant()).ToArray(),
+                        AuthorisationRoute = rcp.AuthorisationRoute.Trim().ToLowerInvariant(),
                         ControlledDrug = rcp.ControlledDrug,
                         DateOfIssue = rcp.DateOfIssue,
-                        DistributionCategory = rcp.DistributionCategory.Trim(),
+                        DistributionCategory = rcp.DistributionCategory.Trim().ToLowerInvariant(),
                         //remove stray html tags in Distributor field
-                        Distributors = rcp.Distributors.Replace("&lt;span&gt", "").Split(';').Select(a => a.Trim()),
-                        MAHolder = rcp.MAHolder.Trim(),
-                        Name = rcp.Name.Trim(),
-                        PAAR_Link = rcp.PAAR_Link.Trim(),
-                        PharmaceuticalForm = rcp.PharmaceuticalForm.Trim(),
-                        SPC_Link = rcp.SPC_Link.Trim(),
-                        TargetSpecies = rcp.TargetSpecies.Split(',').Select(a => a.Trim()),
-                        TherapeuticGroup = rcp.TherapeuticGroup.Trim(),
-                        UKPAR_Link = rcp.UKPAR_Link.Trim(),
-                        VMNo = rcp.VMNo.Trim()
+                        Distributors = rcp.Distributors.Replace("&lt;span&gt", "").Split(';').Select(a => a.Trim().ToLowerInvariant()).ToArray(),
+                        MAHolder = rcp.MAHolder.Trim().ToLowerInvariant(),
+                        Name = rcp.Name.Trim().ToLowerInvariant(),
+                        PAAR_Link = rcp.PAAR_Link.Trim().ToLowerInvariant(),
+                        PharmaceuticalForm = rcp.PharmaceuticalForm.Trim().ToLowerInvariant(),
+                        SPC_Link = rcp.SPC_Link.Trim().ToLowerInvariant(),
+                        TargetSpecies = rcp.TargetSpecies.Split(',').Select(a => a.Trim().ToLowerInvariant()).ToArray(),
+                        TherapeuticGroup = rcp.TherapeuticGroup.Trim().ToLowerInvariant(),
+                        UKPAR_Link = rcp.UKPAR_Link.Trim().ToLowerInvariant(),
+                        VMNo = rcp.VMNo.Trim().ToLowerInvariant()
 
                     }).ToList(),
                 ExpiredProducts = raw.ExpiredProducts.Select(rep =>
                     new ExpiredProduct
                     {
-                        ActiveSubstances = rep.ActiveSubstances.Split(',').Select(a => a.Trim()),
-                        AuthorisationRoute = rep.AuthorisationRoute.Trim(),
-                        MAHolder = rep.MAHolder.Trim(),
-                        Name = rep.Name.Trim(),
-                        SPC_Link = rep.SPC_Link.Trim(),
-                        VMNo = rep.VMNo.Trim(),
+                        ActiveSubstances = rep.ActiveSubstances.Split(',').Select(a => a.Trim().ToLowerInvariant()).ToArray(),
+                        AuthorisationRoute = rep.AuthorisationRoute.Trim().ToLowerInvariant(),
+                        MAHolder = rep.MAHolder.Trim().ToLowerInvariant(),
+                        Name = rep.Name.Trim().ToLowerInvariant(),
+                        SPC_Link = rep.SPC_Link.Trim().ToLowerInvariant(),
+                        VMNo = rep.VMNo.Trim().ToLowerInvariant(),
                         DateofExpiration = rep.DateOfExpiration
                     }).ToList(),
                 SuspendedProducts = raw.SuspendedProducts.Select(rsp =>
                     new SuspendedProduct()
                     {
-                        ActiveSubstances = rsp.ActiveSubstances.Split(',').Select(a => a.Trim()),
-                        AuthorisationRoute = rsp.AuthorisationRoute.Trim(),
+                        ActiveSubstances = rsp.ActiveSubstances.Split(',').Select(a => a.Trim().ToLowerInvariant()).ToArray(),
+                        AuthorisationRoute = rsp.AuthorisationRoute.Trim().ToLowerInvariant(),
                         ControlledDrug = rsp.ControlledDrug,
                         DateOfIssue = rsp.DateOfIssue,
-                        DistributionCategory = rsp.DistributionCategory.Trim(),
-                        MAHolder = rsp.MAHolder.Trim(),
-                        Name = rsp.Name.Trim(),
-                        PAAR_Link = rsp.PAAR_Link.Trim(),
-                        PharmaceuticalForm = rsp.PharmaceuticalForm.Trim(),
-                        SPC_Link = rsp.SPC_Link.Trim(),
-                        TargetSpecies = rsp.TargetSpecies.Split(',').Select(a => a.Trim()),
-                        TherapeuticGroup = rsp.TherapeuticGroup.Trim(),
-                        UKPAR_Link = rsp.UKPAR_Link.Trim(),
-                        VMNo = rsp.VMNo.Trim(),
+                        DistributionCategory = rsp.DistributionCategory.Trim().ToLowerInvariant(),
+                        MAHolder = rsp.MAHolder.Trim().ToLowerInvariant(),
+                        Name = rsp.Name.Trim().ToLowerInvariant(),
+                        PAAR_Link = rsp.PAAR_Link.Trim().ToLowerInvariant(),
+                        PharmaceuticalForm = rsp.PharmaceuticalForm.Trim().ToLowerInvariant(),
+                        SPC_Link = rsp.SPC_Link.Trim().ToLowerInvariant(),
+                        TargetSpecies = rsp.TargetSpecies.Split(',').Select(a => a.Trim().ToLowerInvariant()).ToArray(),
+                        TherapeuticGroup = rsp.TherapeuticGroup.Trim().ToLowerInvariant(),
+                        UKPAR_Link = rsp.UKPAR_Link.Trim().ToLowerInvariant(),
+                        VMNo = rsp.VMNo.Trim().ToLowerInvariant(),
                         DateOfSuspension = rsp.DateOfSuspension
 
                     }).ToList(),
                 HomoeopathicProducts = raw.HomeopathicProducts.Select(rhp =>
                     new HomoeopathicProduct
                     {
-                        ActiveSubstances = rhp.ActiveSubstances.Split(',').Select(a => a.Trim()),
-                        AuthorisationRoute = rhp.AuthorisationRoute.Trim(),
+                        ActiveSubstances = rhp.ActiveSubstances.Split(',').Select(a => a.Trim().ToLowerInvariant()).ToArray(),
+                        AuthorisationRoute = rhp.AuthorisationRoute.Trim().ToLowerInvariant(),
                         ControlledDrug = rhp.ControlledDrug,
                         DateOfIssue = rhp.DateOfIssue,
-                        DistributionCategory = rhp.DistributionCategory.Trim(),
-                        MAHolder = rhp.MAHolder.Trim(),
-                        Name = rhp.Name.Trim(),
-                        PharmaceuticalForm = rhp.PharmaceuticalForm.Trim(),
-                        TargetSpecies = rhp.TargetSpecies.Split(',').Select(a => a.Trim()),
-                        TherapeuticGroup = rhp.TherapeuticGroup.Trim(),
-                        VMNo = rhp.VMNo.Trim()
+                        DistributionCategory = rhp.DistributionCategory.Trim().ToLowerInvariant(),
+                        MAHolder = rhp.MAHolder.Trim().ToLowerInvariant(),
+                        Name = rhp.Name.Trim().ToLowerInvariant(),
+                        PharmaceuticalForm = rhp.PharmaceuticalForm.Trim().ToLowerInvariant(),
+                        TargetSpecies = rhp.TargetSpecies.Split(',').Select(a => a.Trim().ToLowerInvariant()).ToArray(),
+                        TherapeuticGroup = rhp.TherapeuticGroup.Trim().ToLowerInvariant(),
+                        VMNo = rhp.VMNo.Trim().ToLowerInvariant()
                     }).ToList(),
                 CreatedDateTime = createdDateTime ?? default(DateTime)
 
@@ -120,10 +120,10 @@ namespace VetMedData.NET.Util
             return output;
         }
 
-        private static void PopulateStaticTypedTargetSpecies(Product p)
+        private static void PopulateStaticTypedTargetSpecies(ReferenceProduct p)
         {
             if (p.TargetSpecies == null || !p.TargetSpecies.Any()) { return; }
-            p.TargetSpeciesTyped = p.TargetSpecies.SelectMany(TargetSpecies.Find).Distinct();
+            p.TargetSpeciesTyped = p.TargetSpecies.SelectMany(TargetSpecies.Find).Distinct().ToArray(); 
         }
 
         /// <summary>
@@ -268,14 +268,14 @@ namespace VetMedData.NET.Util
                 {
                     var forSplit = productKey.Split(new[] { "for" }, StringSplitOptions.None);
                     var postFor = forSplit[forSplit.Length - 1].Replace("and", ",").Split(',')
-                        .Select(t => t.Trim())
+                        .Select(t => t.Trim().ToLowerInvariant())
                         .Where(t => !string.IsNullOrWhiteSpace(t));
 
                     expiredProduct.TargetSpecies = postFor.ToArray();
                 }
                 else
                 {
-                    Debug.WriteLine($"{expiredProduct.Name} Product not found");
+                    Debug.WriteLine($"{expiredProduct.Name} ReferenceProduct not found");
                 }
                 PopulateStaticTypedTargetSpecies(expiredProduct);
             }
@@ -286,7 +286,7 @@ namespace VetMedData.NET.Util
         /// <summary>
         /// Helper method designed for testing to download SPC document
         /// </summary>
-        /// <param name="p"><see cref="Product"/> to get SPC link for</param>
+        /// <param name="p"><see cref="ReferenceProduct"/> to get SPC link for</param>
         /// <returns>Path to downloaded file in temp folder</returns>
         public static async Task<string> GetSPC(Product p)
         {

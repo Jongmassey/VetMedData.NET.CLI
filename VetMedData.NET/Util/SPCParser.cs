@@ -11,12 +11,40 @@ using System.Text.RegularExpressions;
 namespace VetMedData.NET.Util
 {
     /// <summary>
-    /// Methods for parsing Summary Product Characteristics documents
+    /// Methods for parsing Summary ReferenceProduct Characteristics documents
     /// in either VMD (.doc/docx) formats or EMA multi-product pdf formats.
     /// </summary>
     // ReSharper disable once InconsistentNaming
     public static class SPCParser
     {
+        //pattern for extracting composition section
+        private const string CompositionSectionPattern
+            = @"(?<=2\.\s*QUALITATIVE AND QUANTITATIVE COMPOSITION\s*)([\s\S]*)(?=3\.\s*PHARMACEUTICAL FORM\s*)";
+
+        ////pattern for active substances section
+        //private const string ActiveSubstancesPattern
+        //    = @"(?<=Active\s*Substance[\(s\)]*[ \t]*)([ \S]*)(?=[\r\n]+)([\s\S]*)(?=Excipients)";
+
+        //pattern for Active Substances section header
+        private const string ActiveSubstanceLookbehind
+            = @"(?<=Active\s*Substance[\(s\)]*[ \t]*)";
+
+        //pattern to get units at end of Active Substances header 
+        private const string ActiveSubstanceHeaderUnitCaptureGroup
+            = @"([ \S]*)(?=[\r\n]+)";
+
+        //pattern for following Excipients section header
+        private const string ActiveSubstancesLookahead
+            = @"(?=Excipients)";
+
+        //catch-all pattern (very greedy)
+        private const string CatchAllPattern
+            = @"([\s\S]*)";
+
+        //pattern for excipients section
+        private const string ExcipientsPattern
+            = @"(?<=Excipients)([\s\S]*)";
+
         //pattern for section preceding target species information
         private const string TargetSpeciesLookbehind
             = @"(?<=target species[;:\.]*\s+)";
@@ -24,7 +52,7 @@ namespace VetMedData.NET.Util
         //pattern for section containing target species information
         private const string TargetSpeciesCaptureGroup
             = @"([\s\w\(\)\.\,\-\–\≤\≥\&]*)";
-        
+
         //pattern for section following target species information
         private const string TargetSpeciesLookahead
             = @"(?=\s+4\.2)*(?=\s*indications* for)";
@@ -37,8 +65,49 @@ namespace VetMedData.NET.Util
         private const string UnbracketedAndPattern =
             @"(?<!\(\w+ +)and(?! +\w+\))";
 
-        //regex to get Product Name section of document
+        //regex to get ReferenceProduct Name section of document
         private const string ProductNamePattern = @"2\. ";
+
+        //usual regex options
+        private const RegexOptions Ro = RegexOptions.Compiled | RegexOptions.IgnoreCase;
+
+        /// <summary>
+        /// Extracts composition section then subsequently extracts and parses
+        /// active ingredients table including any units in header
+        /// </summary>
+        /// <param name="plainText"></param>
+        /// <returns><see cref="IEnumerable{T}"/> of <see cref="Tuple"/>s of ingredient, quantity and unit</returns>
+        private static IEnumerable<Tuple<string, double, string>> GetActiveSubstances(string plainText)
+        {
+            var compositionSection =
+                Regex.Match(plainText, CompositionSectionPattern, Ro)
+                    .Captures[0].Value;
+            if (string.IsNullOrWhiteSpace(compositionSection))
+            {
+                return new List<Tuple<string, double, string>>();
+            }
+
+            var activeSubstancesPattern = ActiveSubstanceLookbehind + ActiveSubstanceHeaderUnitCaptureGroup +
+                                          CatchAllPattern + ActiveSubstancesLookahead;
+
+            var m = Regex.Match(compositionSection, activeSubstancesPattern, Ro);
+            if (!m.Success)
+            {
+                activeSubstancesPattern = ActiveSubstanceLookbehind + ActiveSubstanceHeaderUnitCaptureGroup +
+                                          CatchAllPattern;
+                m = Regex.Match(compositionSection, activeSubstancesPattern, Ro);
+            }
+
+            var unitsinheader = m.Captures.Count > 1;
+            var units = unitsinheader ? m.Captures[0].Value : string.Empty;
+            var activeIngredients = (unitsinheader ? m.Captures[1] :
+                m.Captures[0]).Value.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+
+            return activeIngredients
+                .Select(activeIngredient => activeIngredient.Split('\t', StringSplitOptions.RemoveEmptyEntries)).Select(
+                    linesplit => new Tuple<string, double, string>(linesplit[0], double.Parse(linesplit[1]),
+                        unitsinheader ? units : linesplit[2]));
+        }
 
         /// <summary>
         /// Extracts target species from .docx <see cref="WordprocessingDocument"/>
@@ -122,11 +191,11 @@ namespace VetMedData.NET.Util
                 spRegex = new Regex(TargetSpeciesLookbehind +
                                     TargetSpeciesCaptureGroup +
                                     TargetSpeciesLookaheadOldFormat
-                    , RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                    , Ro);
                 m = spRegex.Match(plainText);
             }
 
-            return Regex.Replace(m.Value.Trim().ToLowerInvariant(), UnbracketedAndPattern, ",", RegexOptions.Compiled)
+            return Regex.Replace(m.Value.Trim().ToLowerInvariant(), UnbracketedAndPattern, ",", Ro)
                 .Replace(")", "),")
                 .Replace('\n', ',')
                 .Replace("\r", "")
@@ -140,11 +209,11 @@ namespace VetMedData.NET.Util
         /// <summary>
         /// Extracts target species from .docx
         /// </summary>
-        /// <param name="pathToSPC"> path to SPC document</param>
+        /// <param name="pathToSpc"> path to SPC document</param>
         /// <returns>string array of Target Species</returns>
-        public static string[] GetTargetSpecies(string pathToSPC)
+        public static string[] GetTargetSpecies(string pathToSpc)
         {
-            return GetTargetSpecies(WordprocessingDocument.Open(pathToSPC, false));
+            return GetTargetSpecies(WordprocessingDocument.Open(pathToSpc, false));
         }
 
         /// <summary>
@@ -251,44 +320,39 @@ namespace VetMedData.NET.Util
         /// <returns>Plain Text within XmlElement</returns> 
         public static string GetPlainText(OpenXmlElement element)
         {
-            StringBuilder PlainTextInWord = new StringBuilder();
-            foreach (OpenXmlElement section in element.Elements())
+            var plainTextInWord = new StringBuilder();
+            foreach (var section in element.Elements())
             {
                 switch (section.LocalName)
                 {
                     // Text 
                     case "t":
-                        PlainTextInWord.Append(section.InnerText);
+                        plainTextInWord.Append(section.InnerText);
                         break;
-
 
                     case "cr": // Carriage return 
                     case "br": // Page break 
-                        PlainTextInWord.Append(Environment.NewLine);
+                        plainTextInWord.Append(Environment.NewLine);
                         break;
-
 
                     // Tab 
                     case "tab":
-                        PlainTextInWord.Append("\t");
+                        plainTextInWord.Append("\t");
                         break;
-
 
                     // Paragraph 
                     case "p":
-                        PlainTextInWord.Append(GetPlainText(section));
-                        PlainTextInWord.AppendLine(Environment.NewLine);
+                        plainTextInWord.Append(GetPlainText(section));
+                        plainTextInWord.AppendLine(Environment.NewLine);
                         break;
 
-
                     default:
-                        PlainTextInWord.Append(GetPlainText(section));
+                        plainTextInWord.Append(GetPlainText(section));
                         break;
                 }
             }
 
-
-            return PlainTextInWord.ToString();
+            return plainTextInWord.ToString();
         }
     }
 }

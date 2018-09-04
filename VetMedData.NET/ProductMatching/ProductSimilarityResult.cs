@@ -4,8 +4,8 @@ namespace VetMedData.NET.ProductMatching
 {
     public class ProductSimilarityResult
     {
-        public ProductMatchCandidate InputProduct { get; set; }
-        public Product ReferenceProduct { get; set; }
+        public ActionedProduct InputProduct { get; set; }
+        public ReferenceProduct ReferenceProduct { get; set; }
         public double ProductNameSimilarity { get; set; }
     }
 }

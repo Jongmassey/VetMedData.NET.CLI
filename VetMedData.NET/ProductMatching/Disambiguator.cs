@@ -19,19 +19,22 @@ namespace VetMedData.NET.ProductMatching
 
         public ProductSimilarityResult DisambiguateMatchResults(IEnumerable<ProductSimilarityResult> results)
         {
-            foreach (var filter in _cfg.Filters)
-            {
-                results =
-                    results.Count() > 1 ?
-                        filter.FilterResults(results).Any() ?
-                            filter.FilterResults(results) :
-                            results :
-                        results;
-            }
+            results = _cfg.Filters.Aggregate(results,
+                (current, filter) =>
+                {
+                    var productSimilarityResults = current as ProductSimilarityResult[] ?? current.ToArray();
+                    return (productSimilarityResults.Count() > 1
+                        ? filter.FilterResults(productSimilarityResults).Any()
+                            ?
+                            filter.FilterResults(productSimilarityResults)
+                            : productSimilarityResults
+                        : productSimilarityResults);
+                });
 
-            return results.Count() > 1 ?
-                new RandomSelectFilter().FilterResults(results).Single() :
-                results.Single();
+            var similarityResults = results as ProductSimilarityResult[] ?? results.ToArray();
+            return similarityResults.Length > 1 ?
+                new RandomSelectFilter().FilterResults(similarityResults).Single() :
+                similarityResults.Single();
         }
     }
 

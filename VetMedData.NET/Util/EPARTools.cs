@@ -32,7 +32,7 @@ namespace VetMedData.NET.Util
         /// Searches for SPC document for a product.
         /// Iteratively reduces name by last term until match is found.
         /// </summary>
-        /// <param name="productName">Product Name to search for</param>
+        /// <param name="productName">ReferenceProduct Name to search for</param>
         /// <returns>Array of english-language SPC URLs matching product name</returns>
         public static async Task<string[]> GetSearchResults(string productName)
         {
@@ -57,7 +57,7 @@ namespace VetMedData.NET.Util
         /// the link to the product page. Then gets product page, xpath's links and
         /// filters those to get english-language PDF of SPC document.
         /// </summary>
-        /// <param name="productName">Product Name to search for</param>
+        /// <param name="productName">ReferenceProduct Name to search for</param>
         /// <returns>Array of english-language SPC URLs matching product name</returns>
         private static async Task<string[]> GetSearchResultsInternal(string productName)
         {
@@ -84,10 +84,10 @@ namespace VetMedData.NET.Util
 
                     var innerdoc = new HtmlDocument();
                     innerdoc.Load(await productResponse.Content.ReadAsStreamAsync());
-                    //extract en_GB pdf links to "Product Information" - i.e. SPC
+                    //extract en_GB pdf links to "ReferenceProduct Information" - i.e. SPC
                     var doclinks = innerdoc.DocumentNode.SelectNodes("//a[@href]")
                         .Where(n =>
-                            n.InnerText.Contains("EPAR - Product Information") &&
+                            n.InnerText.Contains("EPAR - ReferenceProduct Information") &&
                             n.Attributes["href"].Value.Contains("en_GB") &&
                             n.Attributes["href"].Value.EndsWith(".pdf"))
                         //format as absolute URI
