@@ -11,7 +11,13 @@ namespace VetMedData.NET.Model
         public string[] Synonyms { get; set; }
         public string[] Names =>
             Synonyms == null ? new[] { CanonicalName } : new[] { CanonicalName }.Union(Synonyms).ToArray();
-        
+
+        public override bool Equals(object obj)
+        {
+            return obj.GetType() == typeof(TargetSpecies) &&
+                   ((TargetSpecies) obj).CanonicalName.Equals(this.CanonicalName);
+        }
+
         public static IEnumerable<TargetSpecies> All { get; } = new[]
         {
             new TargetSpecies {CanonicalName = "all animals"},
@@ -117,9 +123,17 @@ namespace VetMedData.NET.Model
 
         public static IEnumerable<TargetSpecies> Find(string instr)
         {
-            return All.Where(a =>
-                a.Names.Select(
-                    n => n.ToLowerInvariant().Split(' ').Intersect(instr.ToLowerInvariant().Split(' ')).Any()).Any());
+            var refTokens = All.Select(a => new {a, split = a.Names.SelectMany(n => n.ToLowerInvariant().Split(' '))});
+            var inTokens = instr.ToLowerInvariant().Split(' ');
+
+            return refTokens.Where(f => f.split.Intersect(inTokens).Any()).Select(f => f.a);
+            //return All.Where(a =>
+            //    a.Names.Select(
+            //        n => n.ToLowerInvariant()
+            //            .Split(' ')
+            //            .Intersect(instr.ToLowerInvariant().Split(' '))
+            //            .Any()
+            //        ).Any());
         }
     }
 }

@@ -44,7 +44,12 @@ namespace VetMedData.Tests
             var pmr = new ProductMatchRunner(cfg);
             //var pid = VMDPIDFactory.GetVmdpid(true, true, true).Result;
             var pid = PersistentPID.Get(true,true);
-            var ap = new SoldProduct {TargetSpecies = new[] {"cattle"}, Product = new Product {Name = "metacam"},ActionDate = DateTime.Now};
+            var ap = new SoldProduct {
+                TargetSpecies = new[] {"cattle"},
+                //TargetSpeciesTyped = TargetSpecies.Find("cattle") ,
+                Product = new Product {Name = "metacam"} ,
+                ActionDate = DateTime.Now
+            };
             var res = pmr.GetMatch(ap, pid.RealProducts);
             Assert.IsNotNull(res);
             Assert.IsTrue(res.ReferenceProduct.Name.StartsWith("metacam",StringComparison.InvariantCultureIgnoreCase));
