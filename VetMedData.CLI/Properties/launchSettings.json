@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VetMedData.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "NMLin.txt"
+    }
+  }
+}
