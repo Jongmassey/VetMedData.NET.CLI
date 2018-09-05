@@ -15,12 +15,18 @@ namespace VetMedData.NET.Model
         public override bool Equals(object obj)
         {
             return obj.GetType() == typeof(TargetSpecies) &&
-                   ((TargetSpecies) obj).CanonicalName.Equals(this.CanonicalName);
+                   ((TargetSpecies)obj).CanonicalName.Equals(this.CanonicalName);
         }
 
         public static IEnumerable<TargetSpecies> All { get; } = new[]
         {
-            new TargetSpecies {CanonicalName = "all animals"},
+            new TargetSpecies
+            {
+                CanonicalName = "all animals",
+                Synonyms = new []{"as required"}
+                
+
+            },
             new TargetSpecies {CanonicalName = "avian spp"},
             new TargetSpecies {CanonicalName = "badgers"},
             new TargetSpecies {CanonicalName = "bearded dragons"},
@@ -32,17 +38,42 @@ namespace VetMedData.NET.Model
                     "canaries"
                 }},
             new TargetSpecies {CanonicalName = "canaries"},
-            new TargetSpecies {CanonicalName = "cats"},
+            new TargetSpecies
+            {
+                CanonicalName = "cats",
+                Synonyms = new [] {"cat"}
+            },
             new TargetSpecies {CanonicalName = "cattle",
                 Synonyms = new []
                 {
                     "cows"
                     , "calves"
+                    , "bovine"
                 }},
-            new TargetSpecies {CanonicalName = "chickens"},
+            new TargetSpecies
+            {
+                CanonicalName = "chickens",
+                Synonyms = new[]
+                {
+                    "chicken",
+                    "broilers",
+                    "breeders",
+                    "broiler2"
+                }
+
+            },
             new TargetSpecies {CanonicalName = "chinchilla"},
             new TargetSpecies {CanonicalName = "deer"},
-            new TargetSpecies {CanonicalName = "dogs"},
+            new TargetSpecies
+            {
+                CanonicalName = "dogs",
+                Synonyms = new []
+                {
+                    "dog",
+                    "bitches",
+                    "canine"
+                }
+            },
             new TargetSpecies {CanonicalName = "donkeys"},
             new TargetSpecies {CanonicalName = "ducks"},
             new TargetSpecies {CanonicalName = "exotic animals"},
@@ -66,7 +97,9 @@ namespace VetMedData.NET.Model
             new TargetSpecies {CanonicalName = "horses",
                 Synonyms = new []
                 {
-                    "foals"
+                    "foals",
+                    "horse",
+                    "equine"
                 }},
             new TargetSpecies {CanonicalName = "lizards"},
             new TargetSpecies {CanonicalName = "mice"},
@@ -76,7 +109,18 @@ namespace VetMedData.NET.Model
             new TargetSpecies {CanonicalName = "partridge"},
             new TargetSpecies {CanonicalName = "pheasants"},
             new TargetSpecies {CanonicalName = "pigeons"},
-            new TargetSpecies {CanonicalName = "pigs"},
+            new TargetSpecies
+            {
+                CanonicalName = "pigs",
+                Synonyms = new []
+                {
+                    "swine",
+                    "pig",
+                    "piglet",
+                    "piglets"
+                }
+
+            },
             new TargetSpecies {CanonicalName = "polecats"},
             new TargetSpecies {CanonicalName = "poultry",
                 Synonyms = new []
@@ -123,7 +167,7 @@ namespace VetMedData.NET.Model
 
         public static IEnumerable<TargetSpecies> Find(string instr)
         {
-            var refTokens = All.Select(a => new {a, split = a.Names.SelectMany(n => n.ToLowerInvariant().Split(' '))});
+            var refTokens = All.Select(a => new { a, split = a.Names.SelectMany(n => n.ToLowerInvariant().Split(' ')) });
             var inTokens = instr.ToLowerInvariant().Split(' ');
 
             return refTokens.Where(f => f.split.Intersect(inTokens).Any()).Select(f => f.a);

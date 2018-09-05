@@ -87,7 +87,7 @@ namespace VetMedData.NET.Util
                     //extract en_GB pdf links to "ReferenceProduct Information" - i.e. SPC
                     var doclinks = innerdoc.DocumentNode.SelectNodes("//a[@href]")
                         .Where(n =>
-                            n.InnerText.Contains("EPAR - ReferenceProduct Information") &&
+                            n.InnerText.Contains("EPAR - Product Information") &&
                             n.Attributes["href"].Value.Contains("en_GB") &&
                             n.Attributes["href"].Value.EndsWith(".pdf"))
                         //format as absolute URI

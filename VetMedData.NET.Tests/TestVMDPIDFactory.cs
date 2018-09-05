@@ -131,7 +131,7 @@ namespace VetMedData.Tests
             var pid = VMDPIDFactory.GetVmdpid().Result;
             foreach (var p in pid.AllProducts)
             {
-                if (p.GetType() == typeof(ExpiredProduct)) continue;
+                if (p.GetType() == typeof(ExpiredProduct) || _missingTargetSpecies.Contains(p.VMNo)) continue;
                 Assert.IsTrue(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any(),
                     $"Non-expired with un-filled strongly tped target species for {p.Name}");
             }
