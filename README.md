@@ -37,3 +37,5 @@ In cases where an input product is indistinguishable between multiple reference 
 Similarity estimation, filtering and disambiguation can all be wrapped up into a single configured match runner
 which allows for a single reference product match for an input product to be returned. 
 
+## Examples
+A sample .NET Core console application is provided in the VetMedData.CLI Project.
