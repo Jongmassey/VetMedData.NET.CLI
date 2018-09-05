@@ -12,37 +12,38 @@ namespace VetMedData.Tests
     {
         private readonly string[] _missingTherapeuticGroup =
         {
-            "eu/2/16/197/001",
-            "eu/2/17/209/001–002",
-            "eu/2/17/220/001",
-            "eu/2/17/220/003",
-            "eu/2/17/220/004",
-            "eu/2/17/220/005",
-            "eu/2/17/220/006",
+            //"eu/2/16/197/001",
+            //"eu/2/17/209/001–002",
+            //"eu/2/17/220/001",
+            //"eu/2/17/220/003",
+            //"eu/2/17/220/004",
+            //"eu/2/17/220/005",
+            //"eu/2/17/220/006",
 
         };
 
         private readonly string[] _missingTargetSpecies =
         {
-            "eu/2/15/191/004-006",
-            "eu/2/15/191/007-009",
-            "eu/2/15/191/010-012",
-            "eu/2/15/191/013-015",
-            "eu/2/15/191/016-018",
+            //"eu/2/15/191/004-006",
+            //"eu/2/15/191/007-009",
+            //"eu/2/15/191/010-012",
+            //"eu/2/15/191/013-015",
+            //"eu/2/15/191/016-018",
         };
 
         private readonly string[] _missingDistributionCategory =
         {
-            "eu/2/16/202/001-003",
-            "eu/2/17/217/001-002",
+            //"eu/2/16/202/001-003",
+            //"eu/2/17/217/001-002",
         };
-
-
         // private readonly string[] _malformedProductVmNos = { @"13907/4001" };
+
+
         [TestMethod]
         public void TestGetPID()
         {
-            var pid = VMDPIDFactory.GetVmdpid().Result;
+            //var pid = VMDPIDFactory.GetVmdpid().Result;
+            var pid = VMDPIDFactory.GetVmdPid().Result;
             Assert.IsNotNull(pid, "returned PID object is null");
             Assert.IsNotNull(pid.CreatedDateTime, "pid.CreatedDateTime is null");
             Assert.IsTrue(pid.CurrentlyAuthorisedProducts.Count > 0, "No currently authorised products");
@@ -54,7 +55,8 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestAllProducts()
         {
-            var pid = VMDPIDFactory.GetVmdpid().Result;
+            //var pid = VMDPIDFactory.GetVmdpid().Result;
+            var pid = VMDPIDFactory.GetVmdPid().Result;
             var ap = pid.AllProducts;
 
             //check product count
@@ -99,7 +101,8 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestProductPropertyAggregators()
         {
-            var pid = VMDPIDFactory.GetVmdpid().Result;
+            //var pid = VMDPIDFactory.GetVmdpid().Result;
+            var pid = VMDPIDFactory.GetVmdPid().Result;
             foreach (var prop in typeof(VMDPID).GetProperties().Where(p => p.PropertyType == typeof(IEnumerable<string>)))
             {
                 var p = (IEnumerable<string>)prop.GetValue(pid);
@@ -112,10 +115,11 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestTargetSpeciesExtractionLocal()
         {
-            var pid = VMDPIDFactory.GetVmdpid().Result;
+            //var pid = VMDPIDFactory.GetVmdpid().Result;
+            var pid = VMDPIDFactory.GetVmdPid().Result;
             foreach (var ep in pid.ExpiredProducts.Where(ep => !EPARTools.IsEPAR(ep.SPC_Link)))
             {
-                var spc = VMDPIDFactory.GetSPC(ep).Result;
+                var spc = VMDPIDFactory.GetSpc(ep).Result;
                 Debug.WriteLine(spc);
                 spc = spc.ToLowerInvariant().EndsWith(".doc") ? WordConverter.ConvertDocToDocx(spc) : spc;
                 var ts = SPCParser.GetTargetSpecies(spc);
@@ -128,7 +132,8 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestStaticTypingOfTargetSpecies()
         {
-            var pid = VMDPIDFactory.GetVmdpid().Result;
+            //var pid = VMDPIDFactory.GetVmdpid().Result;
+            var pid = VMDPIDFactory.GetVmdPid().Result;
             foreach (var p in pid.AllProducts)
             {
                 if (p.GetType() == typeof(ExpiredProduct) || _missingTargetSpecies.Contains(p.VMNo)) continue;
@@ -140,7 +145,8 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestStaticTypingOfTargetSpeciesExpiredProducts()
         {
-            var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
+            //var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
+            var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct).Result;
             foreach (var p in pid.AllProducts)
             {
                 if (p.GetType() != typeof(ExpiredProduct)
@@ -160,7 +166,8 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestStaticTypingOfTargetSpeciesEmaLicensedExpiredProducts()
         {
-            var pid = VMDPIDFactory.GetVmdpid(false, false, true).Result;
+            //var pid = VMDPIDFactory.GetVmdpid(false, false, true).Result;
+            var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct).Result;
             foreach (var p in pid.AllProducts)
             {
                 if (p.GetType() != typeof(ExpiredProduct)
@@ -180,7 +187,8 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestGetPIDWithExpiredProductTargetSpecies()
         {
-            var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
+            //var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
+            var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct).Result;
             Assert.IsFalse(pid.ExpiredProducts
                                                 //.Where(ep=>!_malformedProductVmNos.Contains(ep.VMNo))
                                                 .Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
@@ -191,7 +199,8 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestGetPIDWithEuropeanExpiredProductTargetSpecies()
         {
-            var pid = VMDPIDFactory.GetVmdpid(false, false, true).Result;
+            //var pid = VMDPIDFactory.GetVmdpid(false, false, true).Result;
+            var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct).Result;
             foreach (var missingProduct in pid.ExpiredProducts
                 .Where(ep => ep.SPC_Link.ToLowerInvariant()
                     .Contains("ema.europa.eu"))

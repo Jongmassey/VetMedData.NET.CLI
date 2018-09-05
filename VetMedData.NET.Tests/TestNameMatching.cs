@@ -42,11 +42,11 @@ namespace VetMedData.Tests
         {
             var cfg = new DefaultProductMatchConfig();
             var pmr = new ProductMatchRunner(cfg);
-            //var pid = VMDPIDFactory.GetVmdpid(true, true, true).Result;
-            var pid = PersistentPID.Get(true,true);
+            var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct |
+                                              PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
+                                              PidFactoryOptions.PersistentPid).Result;
             var ap = new SoldProduct {
                 TargetSpecies = new[] {"cattle"},
-                //TargetSpeciesTyped = TargetSpecies.Find("cattle") ,
                 Product = new Product {Name = "metacam"} ,
                 ActionDate = DateTime.Now
             };

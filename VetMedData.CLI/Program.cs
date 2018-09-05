@@ -18,7 +18,9 @@ namespace VetMedData.CLI
             if (args.Length > 0 && File.Exists(args[0]))
             {
                 var sb = new StringBuilder("\"Input Name\",\"Matched Name\",\"VM Number\",\"Similarity Score\""+Environment.NewLine);
-                var pid = PersistentPID.Get(true, true);
+                var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
+                                                  PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct |
+                                                  PidFactoryOptions.PersistentPid).Result;
                 var cfg = new DefaultProductMatchConfig();
                 var pmr = new ProductMatchRunner(cfg);
                 var i = 0;
@@ -32,17 +34,6 @@ namespace VetMedData.CLI
                     {
                         inputStrings.Add(fs.ReadLine().ToLowerInvariant().Trim());
                         i++;
-                        //var ln = fs.ReadLine();
-                        //var ap = new SoldProduct
-                        //{
-                        //    TargetSpecies = new[] { "cattle" },
-                        //    Product = new Product { Name = ln.ToLowerInvariant().Trim() },
-                        //    ActionDate = DateTime.Now
-                        //};
-                        //var res = pmr.GetMatch(ap, pid.RealProducts);
-                        //sb.AppendJoin(',', $"\"{res.InputProduct.Product.Name}\"", $"\"{res.ReferenceProduct.Name}\"",
-                        //    res.ProductNameSimilarity.ToString(CultureInfo.InvariantCulture));
-                        //sb.AppendLine();
                     }
                 }
                 Console.WriteLine($"Read {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");

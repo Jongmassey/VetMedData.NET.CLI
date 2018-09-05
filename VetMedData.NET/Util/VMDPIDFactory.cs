@@ -5,6 +5,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -12,6 +14,19 @@ using VetMedData.NET.Model;
 
 namespace VetMedData.NET.Util
 {
+    /// <summary>
+    /// Options for storage and processing of <see cref="VMDPID"/> by <see cref="VMDPIDFactory"/>
+    /// </summary>
+    [Flags]
+    public enum PidFactoryOptions : byte
+    {
+        None = 0,
+        GetTargetSpeciesForExpiredVmdProduct = 1,
+        GetTargetSpeciesForExpiredEmaProduct = 2,
+        PersistentPid = 4,
+        OverrideCachedCopy = 8
+    }
+
     /// <summary>
     /// Factory class for <see cref="VMDPID"/>, handles GETting and parsing of XML.
     /// Has singleton-like behaviour for VMDPID class as to reduce
@@ -21,13 +36,149 @@ namespace VetMedData.NET.Util
     // ReSharper disable once InconsistentNaming
     public static class VMDPIDFactory
     {
+        private static readonly IFormatter Formatter = new BinaryFormatter();
+        private static readonly string TempFile = Path.GetTempPath() + Path.DirectorySeparatorChar + "VMDPID.bin";
+
         private const string VmdUrl = @"http://www.vmd.defra.gov.uk/ProductInformationDatabase/downloads/VMD_ProductInformationDatabase.xml";
         private const string DateTimeFormat = @"dd/MM/yyyy HH:mm:ss";
 
         private static readonly HttpClient Client = new HttpClient();
         private static readonly XmlSerializer Xser = new XmlSerializer(typeof(VMDPID_Raw), new XmlRootAttribute("VMD_PIDProducts"));
         private static VMDPID _vmdpid;
+        private static PidFactoryOptions _cachedCopyOptions;
 
+        /// <summary>
+        /// Gets Product Information Database (PID) from Veterinary Medicines Directorate (VMD)
+        /// </summary>
+        /// <param name="options"><see cref="PidFactoryOptions"/>Options for processing and storage of PID</param>
+        /// <returns></returns>
+        public static async Task<VMDPID> GetVmdPid(PidFactoryOptions options = PidFactoryOptions.None)
+        {
+            var pidUpdated = false;
+
+            //do we have an in-memory copy?
+            if (_vmdpid == null || (options & PidFactoryOptions.OverrideCachedCopy) != 0)
+            {
+                //is there one available on disk?
+                var pidDeserialiseSuccess = false;
+                if ((options & PidFactoryOptions.PersistentPid) != 0)
+                {
+                    pidDeserialiseSuccess = GetPidFromDisk();
+                    // ReSharper disable once PossibleNullReferenceException
+                    if (pidDeserialiseSuccess && await GetPidUpdateDate() > _vmdpid.CreatedDateTime)
+                    {
+                        _vmdpid = await GetPidFromVmd();
+                        pidUpdated = true;
+                        _cachedCopyOptions = options;
+                    }
+                }
+
+                if (!pidDeserialiseSuccess)
+                {
+                    _vmdpid = await GetPidFromVmd();
+                    pidUpdated = true;
+                    _cachedCopyOptions = options;
+                }
+            }
+
+            //process target species options
+            if ((options & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) != 0 &&
+                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) == 0 
+                 || pidUpdated)
+                 )
+            {
+                _vmdpid = await PopulateExpiredProductTargetSpecies(_vmdpid);
+            }
+
+            if ((options & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) != 0 &&
+                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) == 0)
+                || pidUpdated)
+            {
+                _vmdpid = await PopulateExpiredProductTargetSpeciesFromEma(_vmdpid);
+            }
+
+            //persist new copy 
+            if ((options & PidFactoryOptions.PersistentPid) != 0 && pidUpdated)
+            {
+                Serialize(_vmdpid);
+            }
+
+            return _vmdpid;
+        }
+
+        /// <summary>
+        /// Helper method designed for testing to download SPC document
+        /// </summary>
+        /// <param name="p"><see cref="ReferenceProduct"/> to get SPC link for</param>
+        /// <returns>Path to downloaded file in temp folder</returns>
+        public static async Task<string> GetSpc(Product p)
+        {
+            var uri = ((ExpiredProduct)p).SPC_Link;
+
+            var tf = Path.GetTempPath() +
+                     Path.DirectorySeparatorChar +
+                     uri.Split('/')[uri.Split('/').Length - 1];
+            if (!File.Exists(tf))
+            {
+                using (var fs = File.OpenWrite(tf))
+                {
+                    (await GetHttpStream(uri)).CopyTo(fs);
+                }
+            }
+
+            return tf;
+        }
+
+        /// <summary>
+        /// Downloads and parses XML PID from VMD
+        /// </summary>
+        /// <returns><see cref="VMDPID"/>output of cleansing and parsing</returns>
+        private static async Task<VMDPID> GetPidFromVmd()
+        {
+            var dt = await GetPidUpdateDate();
+            var xe = XDocument.Load(await GetHttpStream(VmdUrl));
+
+            var raw = (VMDPID_Raw)Xser.Deserialize(xe.CreateReader());
+            return CleanAndParse(raw, dt == default(DateTime) ? (DateTime?)null : dt);
+        }
+
+        /// <summary>
+        /// Writes <see cref="VMDPID"/> to temp file defined in _tf in binary format
+        /// </summary>
+        /// <param name="pid"></param>
+        private static void Serialize(VMDPID pid)
+        {
+            using (var fs = File.Open(TempFile, FileMode.Create, FileAccess.Write))
+            {
+                Formatter.Serialize(fs, pid);
+            }
+        }
+
+        /// <summary>
+        /// Tries to deserialise VMDPID from temp file into _vmdpid
+        /// </summary>
+        /// <returns>Success</returns>
+        private static bool GetPidFromDisk()
+        {
+            if (!File.Exists(TempFile) || new FileInfo(TempFile).Length == 0)
+            {
+                return false;
+            }
+
+            using (var fs = File.OpenRead(TempFile))
+            {
+                try
+                {
+                    _vmdpid = (VMDPID)Formatter.Deserialize(fs);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         /// <summary>
         /// Converts autogen-from-xsd (VMD_PIDProducts.xsd)
@@ -123,7 +274,7 @@ namespace VetMedData.NET.Util
         private static void PopulateStaticTypedTargetSpecies(ReferenceProduct p)
         {
             if (p.TargetSpecies == null || !p.TargetSpecies.Any()) { return; }
-            p.TargetSpeciesTyped = p.TargetSpecies.SelectMany(TargetSpecies.Find).Distinct().ToArray(); 
+            p.TargetSpeciesTyped = p.TargetSpecies.SelectMany(TargetSpecies.Find).Distinct().ToArray();
         }
 
         /// <summary>
@@ -214,7 +365,7 @@ namespace VetMedData.NET.Util
         /// </summary>
         /// <param name="inpid"></param>
         /// <returns>The provided <see cref="VMDPID"/> with EMA-authorised expired products' target species populated</returns>
-        private static async Task<VMDPID> PopulateExpiredProductTargetSpeciesFromEMA(VMDPID inpid)
+        private static async Task<VMDPID> PopulateExpiredProductTargetSpeciesFromEma(VMDPID inpid)
         {
 
             foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => EPARTools.IsEPAR(ep.SPC_Link)))
@@ -284,84 +435,28 @@ namespace VetMedData.NET.Util
         }
 
         /// <summary>
-        /// Helper method designed for testing to download SPC document
+        /// Downloads VMD PID and extracts creation date time from xml comment
         /// </summary>
-        /// <param name="p"><see cref="ReferenceProduct"/> to get SPC link for</param>
-        /// <returns>Path to downloaded file in temp folder</returns>
-        public static async Task<string> GetSPC(Product p)
+        /// <returns>Creation <see cref="DateTime"/></returns>
+        private static async Task<DateTime> GetPidUpdateDate()
         {
-            var uri = ((ExpiredProduct)p).SPC_Link;
+            //load incoming stream from HTTP as LINQ to XML element
+            var xe = XDocument.Load(await GetHttpStream(VmdUrl));
+            var comments = xe.DescendantNodes().OfType<XComment>();
 
-            var tf = Path.GetTempPath() +
-                     Path.DirectorySeparatorChar +
-                    uri.Split('/')[uri.Split('/').Length - 1];
-            if (!File.Exists(tf))
+            //get first comment which ends in a valid datetime as per DateTimeFormat
+            var dt = default(DateTime);
+            foreach (var comment in comments)
             {
-                using (var fs = File.OpenWrite(tf))
+                if (DateTime.TryParseExact(comment.Value.Substring(comment.Value.Length - DateTimeFormat.Length)
+                    , DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
                 {
-                    (await GetHttpStream(uri)).CopyTo(fs);
+                    break;
                 }
             }
 
-            return tf;
+            return dt;
         }
-
-
-        /// <summary>
-        /// Gets copy of VMDPID.
-        /// If copy has already been downloaded, and overrideStoredInstance set to
-        /// False (default) then cached copy will be returned.
-        /// </summary>
-        /// <param name="overrideStoredInstance">
-        /// Setting to true will cause new copy of XML PID to be downloaded from VMD
-        /// </param>
-        /// <param name="getTargetSpeciesForExpiredProducts">
-        /// Setting to true will HTTP get the SPC document for every expired product and
-        /// will attempt to parse the TargetSpecies section into structured data.
-        /// </param>
-        /// <param name="getTargetSpeciesForEuropeanExpiredProducts">
-        /// Setting to true will attempt to search for the product on the EMA website,
-        /// scrape the results and navigate to the pdf download link for the SPC. This
-        /// pdf file will be parsed to find the TargetSpecies section.</param>
-        /// <returns></returns>
-        public static async Task<VMDPID> GetVmdpid(bool overrideStoredInstance = false,
-            bool getTargetSpeciesForExpiredProducts = false,
-            bool getTargetSpeciesForEuropeanExpiredProducts = false)
-        {
-            if (overrideStoredInstance || _vmdpid == null)
-            {
-                //load incoming stream from HTTP as LINQ to XML element
-                var xe = XDocument.Load(await GetHttpStream(VmdUrl));
-                var comments = xe.DescendantNodes().OfType<XComment>();
-
-                //get first comment which ends in a valid datetime as per DateTimeFormat
-                var dt = default(DateTime);
-                foreach (var comment in comments)
-                {
-                    if (DateTime.TryParseExact(comment.Value.Substring(comment.Value.Length - DateTimeFormat.Length)
-                        , DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt))
-                    {
-                        break;
-                    }
-                }
-
-                var raw = (VMDPID_Raw)Xser.Deserialize(xe.CreateReader());
-                _vmdpid = CleanAndParse(raw, dt == default(DateTime) ? (DateTime?)null : dt);
-            }
-
-            if (getTargetSpeciesForExpiredProducts)
-            {
-                _vmdpid = await PopulateExpiredProductTargetSpecies(_vmdpid);
-            }
-
-            if (getTargetSpeciesForEuropeanExpiredProducts)
-            {
-                _vmdpid = await PopulateExpiredProductTargetSpeciesFromEMA(_vmdpid);
-            }
-
-            return _vmdpid;
-        }
-
 
     }
 }
