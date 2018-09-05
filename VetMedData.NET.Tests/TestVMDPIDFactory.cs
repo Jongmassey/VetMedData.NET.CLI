@@ -10,7 +10,35 @@ namespace VetMedData.Tests
     [TestClass]
     public class TestVMDPIDFactory
     {
-       // private readonly string[] _malformedProductVmNos = { @"13907/4001" };
+        private readonly string[] _missingTherapeuticGroup =
+        {
+            "eu/2/16/197/001",
+            "eu/2/17/209/001–002",
+            "eu/2/17/220/001",
+            "eu/2/17/220/003",
+            "eu/2/17/220/004",
+            "eu/2/17/220/005",
+            "eu/2/17/220/006",
+
+        };
+
+        private readonly string[] _missingTargetSpecies =
+        {
+            "eu/2/15/191/004-006",
+            "eu/2/15/191/007-009",
+            "eu/2/15/191/010-012",
+            "eu/2/15/191/013-015",
+            "eu/2/15/191/016-018",
+        };
+
+        private readonly string[] _missingDistributionCategory =
+        {
+            "eu/2/16/202/001-003",
+            "eu/2/17/217/001-002",
+        };
+
+
+        // private readonly string[] _malformedProductVmNos = { @"13907/4001" };
         [TestMethod]
         public void TestGetPID()
         {
@@ -48,6 +76,9 @@ namespace VetMedData.Tests
                                 && !p.Name.Equals("UKPAR_Link")
                                 && !p.Name.Equals("PAAR_Link")))
                 {
+                    if (_missingTherapeuticGroup.Contains(product.VMNo) && property.Name.Equals("TherapeuticGroup")) { continue; }
+                    if (_missingDistributionCategory.Contains(product.VMNo) && property.Name.Equals("DistributionCategory")) { continue; }
+
                     Assert.IsFalse(string.IsNullOrEmpty(property.GetValue(product).ToString()), $"Property {property.Name} empty for product {product}");
                 }
 
@@ -55,7 +86,8 @@ namespace VetMedData.Tests
                 foreach (var property in typeof(ReferenceProduct).GetProperties()
                     .Where(p => p.PropertyType == typeof(IEnumerable<string>)))
                 {
-                    if (typeof(ExpiredProduct) == product.GetType()
+                    if ((typeof(ExpiredProduct) == product.GetType() || 
+                         _missingTargetSpecies.Contains(product.VMNo))
                         && property.Name.Equals("TargetSpecies"))
                     { continue; }
 
@@ -81,15 +113,15 @@ namespace VetMedData.Tests
         public void TestTargetSpeciesExtractionLocal()
         {
             var pid = VMDPIDFactory.GetVmdpid().Result;
-            foreach (var ep in pid.ExpiredProducts.Where(ep=>!EPARTools.IsEPAR(ep.SPC_Link)))
+            foreach (var ep in pid.ExpiredProducts.Where(ep => !EPARTools.IsEPAR(ep.SPC_Link)))
             {
                 var spc = VMDPIDFactory.GetSPC(ep).Result;
                 Debug.WriteLine(spc);
-                spc = spc.ToLowerInvariant().EndsWith(".doc")? WordConverter.ConvertDocToDocx(spc): spc;
+                spc = spc.ToLowerInvariant().EndsWith(".doc") ? WordConverter.ConvertDocToDocx(spc) : spc;
                 var ts = SPCParser.GetTargetSpecies(spc);
-                Assert.IsNotNull(ts,$"null ts for {ep.Name}, {spc}");
-                Assert.IsTrue(ts.Any(),$"empty ts for {ep.Name}, {spc}");
-                Assert.IsFalse(ts.Any(string.IsNullOrWhiteSpace),$"blank species for {ep.Name}, {spc}");
+                Assert.IsNotNull(ts, $"null ts for {ep.Name}, {spc}");
+                Assert.IsTrue(ts.Any(), $"empty ts for {ep.Name}, {spc}");
+                Assert.IsFalse(ts.Any(string.IsNullOrWhiteSpace), $"blank species for {ep.Name}, {spc}");
             }
         }
 
@@ -108,7 +140,7 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestStaticTypingOfTargetSpeciesExpiredProducts()
         {
-            var pid = VMDPIDFactory.GetVmdpid(false,true).Result;
+            var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
             foreach (var p in pid.AllProducts)
             {
                 if (p.GetType() != typeof(ExpiredProduct)
@@ -136,12 +168,12 @@ namespace VetMedData.Tests
                     ) continue;
                 if (!(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any()))
                 {
-                    Debug.WriteLine(string.Join(';',p.TargetSpecies));
+                    Debug.WriteLine(string.Join(';', p.TargetSpecies));
                 }
 
                 Assert.IsTrue(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any(),
                     $"EMA-licensed expired product with un-filled strongly tped target species for {p.Name}" +
-                    $"from {string.Join(';',p.TargetSpecies)}");
+                    $"from {string.Join(';', p.TargetSpecies)}");
             }
         }
 
@@ -150,7 +182,7 @@ namespace VetMedData.Tests
         {
             var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
             Assert.IsFalse(pid.ExpiredProducts
-                //.Where(ep=>!_malformedProductVmNos.Contains(ep.VMNo))
+                                                //.Where(ep=>!_malformedProductVmNos.Contains(ep.VMNo))
                                                 .Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
                                                            ep.SPC_Link.ToLower().EndsWith(".docx"))
                                                 .Any(ep => !ep.TargetSpecies.Any()));
