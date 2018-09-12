@@ -11,6 +11,16 @@ namespace VetMedData.NET.ProductMatching
         IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results);
     }
 
+    public class ShortestResultFilter : IProductMatchResultFilter
+    {
+        public IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results)
+        {
+            var resLocal = results.ToArray();
+            var shortest = resLocal.Select(rm => rm.ReferenceProduct.Name.Split(' ').Length).Min();
+            return resLocal.Where(r => r.ReferenceProduct.Name.Split(' ').Length == shortest);
+        }
+    }
+
     public class MaximalSimilarityResultFilter : IProductMatchResultFilter
     {
         public IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results)
@@ -52,8 +62,8 @@ namespace VetMedData.NET.ProductMatching
     {
         public IEnumerable<ProductSimilarityResult> FilterResults(IEnumerable<ProductSimilarityResult> results)
         {
-            var r = new Random();
-            return new[] { results.ElementAt(r.Next(1, results.Count())) };
+            var r = new Random().Next(1,results.Count());
+            return new[] { results.ElementAt(r-1) };
         }
     }
 

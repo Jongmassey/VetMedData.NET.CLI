@@ -10,7 +10,7 @@ namespace VetMedData.NET.ProductMatching
 
     public class HierarchicalFilterWithRandomFinalSelect : IProductMatchDisambiguator
     {
-        private readonly OrderedFilterBasedDisambiguatorConfig _cfg;
+        public OrderedFilterBasedDisambiguatorConfig _cfg { get; }
 
         public HierarchicalFilterWithRandomFinalSelect(OrderedFilterBasedDisambiguatorConfig cfg)
         {
@@ -23,6 +23,11 @@ namespace VetMedData.NET.ProductMatching
                 (current, filter) =>
                 {
                     var productSimilarityResults = current as ProductSimilarityResult[] ?? current.ToArray();
+                    if (productSimilarityResults.Length == 0)
+                    {
+                        return current;
+                    }
+
                     return (productSimilarityResults.Count() > 1
                         ? filter.FilterResults(productSimilarityResults).Any()
                             ?

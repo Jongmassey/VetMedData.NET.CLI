@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VetMedData.NET.Model;
@@ -17,7 +19,7 @@ namespace VetMedData.CLI
         {
             if (args.Length > 0 && File.Exists(args[0]))
             {
-                var sb = new StringBuilder("\"Input Name\",\"Matched Name\",\"VM Number\",\"Similarity Score\""+Environment.NewLine);
+                var sb = new StringBuilder("\"Input Name\",\"Matched Name\",\"VM Number\",\"Similarity Score\"" + Environment.NewLine);
                 var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
                                                   PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct |
                                                   PidFactoryOptions.PersistentPid).Result;
@@ -32,11 +34,11 @@ namespace VetMedData.CLI
                 {
                     while (!fs.EndOfStream)
                     {
-                        inputStrings.Add(fs.ReadLine().ToLowerInvariant().Trim());
+                        inputStrings.Add(fs.ReadLine()?.ToLowerInvariant().Trim());
                         i++;
                     }
                 }
-                Console.WriteLine($"Read {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
+                //Console.WriteLine($"Read {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
                 sw.Restart();
                 Parallel.ForEach(inputStrings, inputString =>
                 {
@@ -58,16 +60,113 @@ namespace VetMedData.CLI
                             Environment.NewLine);
                     }
                 });
-                Console.WriteLine($"Processed {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
-                sw.Restart();
-                var outfile = args.Length==2? Path.GetFileName(args[0])+ args[1]: args[0] + ".out.csv";
-                File.WriteAllText(outfile, sb.ToString());
-                Console.WriteLine($"Wrote {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
+                //Console.WriteLine($"Processed {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
+                //sw.Restart();
+                //var outfile = args.Length==2? Path.GetFileName(args[0])+ args[1]: args[0] + ".out.csv";
+                //File.WriteAllText(outfile, sb.ToString());
+                Console.WriteLine(sb.ToString());
+                //Console.WriteLine($"Wrote {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
+            }
+
+            else
+
+            if (args.Length > 0 && args[0].Equals("print",StringComparison.InvariantCultureIgnoreCase))
+            {
+                var propName = args[1];
+                var pidProperties = typeof(VMDPID).GetProperties();
+                try
+                {
+                    var prop = pidProperties.Single(
+                        p => p.Name.Equals(propName, StringComparison.InvariantCultureIgnoreCase));
+
+                    var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
+                                                      PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct |
+                                                      PidFactoryOptions.PersistentPid).Result;
+
+                    var values = (IEnumerable<string>)prop.GetValue(pid);
+                    foreach (var value in values.Distinct().OrderBy(s => s))
+                    {
+                        Console.WriteLine(value);
+                    }
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine($"Property {propName} not found in VMDPID");
+                }
+            }
+            else 
+            if (args.Length > 1 && args[0].Equals("explainmatch"))
+            {
+                var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
+                                                  PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct |
+                                                  PidFactoryOptions.PersistentPid).Result;
+
+                var cfg = new DefaultProductMatchConfig();
+                var pmr = new ProductMatchRunner(cfg);
+                var name = args[1];
+
+                var ap = new ActionedProduct
+                {
+                    Product = new Product { Name = name },
+                };
+
+                var refprod = pid.AllProducts.Single(p => p.VMNo.Equals(args[2]));
+                var foo = ap.GetMatchingResult(refprod, cfg);
+                Console.WriteLine(foo);
+
+            }
+            else
+            if (args.Length > 2 && args[0].Equals("explain"))
+            {
+                var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
+                                                  PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct |
+                                                  PidFactoryOptions.PersistentPid).Result;
+
+                var cfg = new DefaultProductMatchConfig();
+                var pmr = new ProductMatchRunner(cfg);
+
+                var species = args[2].Split(',');
+                var name = args[1];
+
+                var ap = new ActionedProduct
+                {
+                    Product = new Product { Name = name },
+                    TargetSpecies = species
+                };
+
+                var mr = pmr.GetMatchResults(ap, pid.RealProducts).ToArray();
+                var dc = pmr.GetDisambiguationCandidates(mr).ToArray();
+                var res = pmr.GetMatch(ap, pid.RealProducts);
+                Console.WriteLine("Matched product:");
+                Console.WriteLine(string.Join('\t', res.ReferenceProduct.Name, res.ReferenceProduct.VMNo, res.ProductNameSimilarity.ToString(CultureInfo.InvariantCulture)));
+                Console.WriteLine();
+                Console.WriteLine("All products:");
+                foreach (var matchResult in mr)
+                {
+                    Console.WriteLine(string.Join('\t', matchResult.ReferenceProduct.Name, matchResult.ReferenceProduct.VMNo, matchResult.ProductNameSimilarity.ToString(CultureInfo.InvariantCulture)));
+                }
+                Console.WriteLine();
+                Console.WriteLine("Disambiguation Candidates:");
+                foreach (var productSimilarityResult in dc)
+                {
+                    Console.WriteLine(string.Join('\t', productSimilarityResult.ReferenceProduct.Name, productSimilarityResult.ReferenceProduct.VMNo, productSimilarityResult.ProductNameSimilarity.ToString(CultureInfo.InvariantCulture)));
+                }
+
+                var disambiguationConfig = ((HierarchicalFilterWithRandomFinalSelect)cfg.Disambiguator)._cfg;
+
+                foreach (var disambiguationFilter in disambiguationConfig.Filters)
+                {
+                    Console.WriteLine($"Filter: {disambiguationFilter.GetType().Name}");
+                    foreach (var filterResult in disambiguationFilter.FilterResults(dc))
+                    {
+                        Console.WriteLine(string.Join('\t', filterResult.ReferenceProduct.Name, filterResult.ReferenceProduct.VMNo, filterResult.ProductNameSimilarity.ToString(CultureInfo.InvariantCulture)));
+                    }
+                }
             }
             else
             {
                 Console.WriteLine("Requires path to file to process as first argument.");
-                Console.WriteLine("Output will be generated in same location unless path specified in second argument.");
+                //   Console.WriteLine("Output will be generated in same location unless path specified in second argument.");
                 Console.ReadLine();
             }
         }

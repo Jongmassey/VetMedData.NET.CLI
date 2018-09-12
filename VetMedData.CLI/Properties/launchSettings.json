@@ -2,7 +2,7 @@
   "profiles": {
     "VetMedData.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "NMLin.txt"
+      "commandLineArgs": "explainmatch \"opticlox eye oint 4x5gm (4) [discount 15%]\" \"02000/4075\""
     }
   }
 }

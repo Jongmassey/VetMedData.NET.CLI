@@ -47,6 +47,13 @@ namespace VetMedData.NET.Util
         private static VMDPID _vmdpid;
         private static PidFactoryOptions _cachedCopyOptions;
 
+        [Serializable]
+        private class SerialisedPID
+        {
+            public PidFactoryOptions Options { get; set; }
+            public VMDPID Pid { get; set; }
+        }
+
         /// <summary>
         /// Gets Product Information Database (PID) from Veterinary Medicines Directorate (VMD)
         /// </summary>
@@ -82,17 +89,20 @@ namespace VetMedData.NET.Util
             }
 
             //process target species options
-            if ((options & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) != 0 &&
-                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) == 0 
-                 || pidUpdated)
+            if ((pidUpdated && (options & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) != 0 )||
+                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) == 0 &&
+                 (options & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) != 0
+                 )
                  )
             {
                 _vmdpid = await PopulateExpiredProductTargetSpecies(_vmdpid);
             }
 
-            if ((options & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) != 0 &&
-                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) == 0)
-                || pidUpdated)
+            if ((pidUpdated && (options & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) != 0) ||
+                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) == 0 &&
+                 (options & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) != 0
+                )
+            )
             {
                 _vmdpid = await PopulateExpiredProductTargetSpeciesFromEma(_vmdpid);
             }
@@ -100,7 +110,7 @@ namespace VetMedData.NET.Util
             //persist new copy 
             if ((options & PidFactoryOptions.PersistentPid) != 0 && pidUpdated)
             {
-                Serialize(_vmdpid);
+                Serialize(new SerialisedPID {Pid = _vmdpid, Options = _cachedCopyOptions});
             }
 
             return _vmdpid;
@@ -143,10 +153,10 @@ namespace VetMedData.NET.Util
         }
 
         /// <summary>
-        /// Writes <see cref="VMDPID"/> to temp file defined in _tf in binary format
+        /// Writes <see cref="SerialisedPID"/> to temp file defined in _tf in binary format
         /// </summary>
         /// <param name="pid"></param>
-        private static void Serialize(VMDPID pid)
+        private static void Serialize(SerialisedPID pid)
         {
             using (var fs = File.Open(TempFile, FileMode.Create, FileAccess.Write))
             {
@@ -169,7 +179,9 @@ namespace VetMedData.NET.Util
             {
                 try
                 {
-                    _vmdpid = (VMDPID)Formatter.Deserialize(fs);
+                    var pidSer = (SerialisedPID)Formatter.Deserialize(fs);
+                    _vmdpid = pidSer.Pid;
+                    _cachedCopyOptions = pidSer.Options;
                 }
                 catch (Exception)
                 {
@@ -315,6 +327,11 @@ namespace VetMedData.NET.Util
                 {
                     tf = Path.GetTempFileName();
                     tdoc = $"{tf}.doc";
+                    if (File.Exists(tdoc))
+                    {
+                        File.Delete(tdoc);
+                    }
+
                     File.Move(tf, tdoc);
 
                     using (var fs = File.OpenWrite(tdoc))
