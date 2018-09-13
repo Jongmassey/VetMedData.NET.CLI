@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -47,13 +48,6 @@ namespace VetMedData.NET.Util
         private static VMDPID _vmdpid;
         private static PidFactoryOptions _cachedCopyOptions;
 
-        [Serializable]
-        private class SerialisedPID
-        {
-            public PidFactoryOptions Options { get; set; }
-            public VMDPID Pid { get; set; }
-        }
-
         /// <summary>
         /// Gets Product Information Database (PID) from Veterinary Medicines Directorate (VMD)
         /// </summary>
@@ -89,20 +83,17 @@ namespace VetMedData.NET.Util
             }
 
             //process target species options
-            if ((pidUpdated && (options & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) != 0 )||
-                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) == 0 &&
-                 (options & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) != 0
-                 )
+            if ((options & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) != 0 &&
+                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct) == 0
+                 || pidUpdated)
                  )
             {
                 _vmdpid = await PopulateExpiredProductTargetSpecies(_vmdpid);
             }
 
-            if ((pidUpdated && (options & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) != 0) ||
-                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) == 0 &&
-                 (options & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) != 0
-                )
-            )
+            if ((options & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) != 0 &&
+                ((_cachedCopyOptions & PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct) == 0)
+                || pidUpdated)
             {
                 _vmdpid = await PopulateExpiredProductTargetSpeciesFromEma(_vmdpid);
             }
@@ -110,7 +101,7 @@ namespace VetMedData.NET.Util
             //persist new copy 
             if ((options & PidFactoryOptions.PersistentPid) != 0 && pidUpdated)
             {
-                Serialize(new SerialisedPID {Pid = _vmdpid, Options = _cachedCopyOptions});
+                Serialize(_vmdpid);
             }
 
             return _vmdpid;
@@ -153,10 +144,10 @@ namespace VetMedData.NET.Util
         }
 
         /// <summary>
-        /// Writes <see cref="SerialisedPID"/> to temp file defined in _tf in binary format
+        /// Writes <see cref="VMDPID"/> to temp file defined in _tf in binary format
         /// </summary>
         /// <param name="pid"></param>
-        private static void Serialize(SerialisedPID pid)
+        private static void Serialize(VMDPID pid)
         {
             using (var fs = File.Open(TempFile, FileMode.Create, FileAccess.Write))
             {
@@ -179,9 +170,7 @@ namespace VetMedData.NET.Util
             {
                 try
                 {
-                    var pidSer = (SerialisedPID)Formatter.Deserialize(fs);
-                    _vmdpid = pidSer.Pid;
-                    _cachedCopyOptions = pidSer.Options;
+                    _vmdpid = (VMDPID)Formatter.Deserialize(fs);
                 }
                 catch (Exception)
                 {
@@ -314,64 +303,69 @@ namespace VetMedData.NET.Util
         /// <returns>Provided <see cref="VMDPID"/> with populated target species for expired products</returns>
         private static async Task<VMDPID> PopulateExpiredProductTargetSpecies(VMDPID inpid)
         {
-            foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
-                                                                             ep.SPC_Link.ToLower().EndsWith(".docx")))
-            {
-                var tdoc = "";
-                // ReSharper disable once RedundantAssignment
-                var tdocx = "";
-                // ReSharper disable once RedundantAssignment
-                var tf = "";
-                var doc = expiredProduct.SPC_Link.EndsWith(".doc", StringComparison.InvariantCultureIgnoreCase);
-                if (doc)
-                {
-                    tf = Path.GetTempFileName();
-                    tdoc = $"{tf}.doc";
-                    if (File.Exists(tdoc))
-                    {
-                        File.Delete(tdoc);
-                    }
+            var expiredProducts =
+                new ConcurrentBag<ExpiredProduct>(inpid.ExpiredProducts.Where(
+                ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
+                      ep.SPC_Link.ToLower().EndsWith(".docx")));
 
-                    File.Move(tf, tdoc);
-
-                    using (var fs = File.OpenWrite(tdoc))
-                    {
-                        (await GetHttpStream(expiredProduct.SPC_Link)).CopyTo(fs);
-                        fs.Flush();
-                    }
-
-                    tdocx = WordConverter.ConvertDocToDocx(tdoc);
-                }
-                else
-                {
-                    tf = Path.GetTempFileName();
-                    tdocx = $"{tf}.docx";
-                    File.Move(tf, tdocx);
-                    using (var fs = File.OpenWrite(tdocx))
-                    {
-                        (await GetHttpStream(expiredProduct.SPC_Link)).CopyTo(fs);
-                    }
-                }
-
-                using (var spcStream = File.Open(tdocx, FileMode.Open))
-                {
-                    var ts = SPCParser.GetTargetSpecies(spcStream);
-                    expiredProduct.TargetSpecies = ts;
-                }
-
-                if (!string.IsNullOrEmpty(tdoc) && File.Exists(tdoc))
-                {
-                    File.Delete(tdoc);
-                }
-
-                if (!string.IsNullOrEmpty(tdocx) && File.Exists(tdocx))
-                {
-                    File.Delete(tdocx);
-                }
-
-                PopulateStaticTypedTargetSpecies(expiredProduct);
-            }
+            var tasks = expiredProducts.Select(async ep => await PopulateTargetSpecies(ep));
+            await Task.WhenAll(tasks);
+            inpid.ExpiredProducts = inpid.ExpiredProducts.Where(ep => !(ep.SPC_Link.ToLower().EndsWith(".doc") ||
+                                                                      ep.SPC_Link.ToLower().EndsWith(".docx")))
+                    .Union(expiredProducts).ToList();
             return inpid;
+        }
+
+        private static async Task PopulateTargetSpecies(ExpiredProduct expiredProduct)
+        {
+            var tdoc = "";
+            // ReSharper disable once RedundantAssignment
+            var tdocx = "";
+            // ReSharper disable once RedundantAssignment
+            var tf = "";
+            var doc = expiredProduct.SPC_Link.EndsWith(".doc", StringComparison.InvariantCultureIgnoreCase);
+            if (doc)
+            {
+                tf = Path.GetTempFileName();
+                tdoc = $"{tf}.doc";
+                File.Move(tf, tdoc);
+
+                using (var fs = File.OpenWrite(tdoc))
+                {
+                    (await GetHttpStream(expiredProduct.SPC_Link)).CopyTo(fs);
+                    fs.Flush();
+                }
+
+                tdocx = WordConverter.ConvertDocToDocx(tdoc);
+            }
+            else
+            {
+                tf = Path.GetTempFileName();
+                tdocx = $"{tf}.docx";
+                File.Move(tf, tdocx);
+                using (var fs = File.OpenWrite(tdocx))
+                {
+                    (await GetHttpStream(expiredProduct.SPC_Link)).CopyTo(fs);
+                }
+            }
+
+            using (var spcStream = File.Open(tdocx, FileMode.Open))
+            {
+                var ts = SPCParser.GetTargetSpecies(spcStream);
+                expiredProduct.TargetSpecies = ts;
+            }
+
+            if (!string.IsNullOrEmpty(tdoc) && File.Exists(tdoc))
+            {
+                File.Delete(tdoc);
+            }
+
+            if (!string.IsNullOrEmpty(tdocx) && File.Exists(tdocx))
+            {
+                File.Delete(tdocx);
+            }
+
+            PopulateStaticTypedTargetSpecies(expiredProduct);
         }
 
         /// <summary>
@@ -384,71 +378,79 @@ namespace VetMedData.NET.Util
         /// <returns>The provided <see cref="VMDPID"/> with EMA-authorised expired products' target species populated</returns>
         private static async Task<VMDPID> PopulateExpiredProductTargetSpeciesFromEma(VMDPID inpid)
         {
+            var expiredProducts =
+                new ConcurrentBag<ExpiredProduct>(inpid.ExpiredProducts.Where(
+                    ep => EPARTools.IsEPAR(ep.SPC_Link)));
 
-            foreach (var expiredProduct in inpid.ExpiredProducts.Where(ep => EPARTools.IsEPAR(ep.SPC_Link)))
-            {
-                var possibleTargetSpecies = new Dictionary<string, string[]>();
-                var searchResults = await EPARTools.GetSearchResults(expiredProduct.Name);
-                foreach (var result in searchResults)
-                {
-                    var tf = Path.GetTempFileName();
-                    using (var tfs = File.OpenWrite(tf))
-                    {
-                        (await GetHttpStream(result)).CopyTo(tfs);
-                    }
-
-                    var targetSpecies = SPCParser.GetTargetSpeciesFromMultiProductPdf(tf);
-                    foreach (var ts in targetSpecies)
-                    {
-                        possibleTargetSpecies[ts.Key.ToLowerInvariant()] = ts.Value;
-                    }
-                    File.Delete(tf);
-                }
-
-                var productKey = expiredProduct.Name.ToLowerInvariant();
-
-                //exact name match
-                if (possibleTargetSpecies.ContainsKey(productKey))
-                {
-                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
-                }
-
-                //todo:smarter nonexact matching
-
-                //name starts with
-                else if (possibleTargetSpecies.Keys.Any(k => k.StartsWith(productKey)))
-                {
-                    productKey = possibleTargetSpecies.Keys.Single(k => k.StartsWith(productKey));
-                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
-                }
-
-                //resolve inconsistent spacing in name between VMD and EMA
-                else if (possibleTargetSpecies.Keys.Any(k => k.Replace(" ", "").Equals(productKey.Replace(" ", ""))))
-                {
-                    productKey =
-                        possibleTargetSpecies.Keys.Single(k => k.Replace(" ", "").Equals(productKey.Replace(" ", "")));
-                    expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
-                }
-
-                //get the bit after "for" in the name. Risky - e.g. "solution for injection"
-                //could maybe do with species lookup for validation
-                else if (productKey.Contains(" for "))
-                {
-                    var forSplit = productKey.Split(new[] { "for" }, StringSplitOptions.None);
-                    var postFor = forSplit[forSplit.Length - 1].Replace("and", ",").Split(',')
-                        .Select(t => t.Trim().ToLowerInvariant())
-                        .Where(t => !string.IsNullOrWhiteSpace(t));
-
-                    expiredProduct.TargetSpecies = postFor.ToArray();
-                }
-                else
-                {
-                    Debug.WriteLine($"{expiredProduct.Name} ReferenceProduct not found");
-                }
-                PopulateStaticTypedTargetSpecies(expiredProduct);
-            }
+            var tasks = expiredProducts.Select(async ep => await PopulateTargetSpeciesFromEma(ep));
+            await Task.WhenAll(tasks);
+            inpid.ExpiredProducts = inpid.ExpiredProducts.Where(ep => !EPARTools.IsEPAR(ep.SPC_Link))
+                .Union(expiredProducts).ToList();
 
             return inpid;
+        }
+
+        private static async Task PopulateTargetSpeciesFromEma(ReferenceProduct expiredProduct)
+        {
+            var possibleTargetSpecies = new Dictionary<string, string[]>();
+            var searchResults = await EPARTools.GetSearchResults(expiredProduct.Name);
+            foreach (var result in searchResults)
+            {
+                var tf = Path.GetTempFileName();
+                using (var tfs = File.OpenWrite(tf))
+                {
+                    (await GetHttpStream(result)).CopyTo(tfs);
+                }
+
+                var targetSpecies = SPCParser.GetTargetSpeciesFromMultiProductPdf(tf);
+                foreach (var ts in targetSpecies)
+                {
+                    possibleTargetSpecies[ts.Key.ToLowerInvariant()] = ts.Value;
+                }
+                File.Delete(tf);
+            }
+
+            var productKey = expiredProduct.Name.ToLowerInvariant();
+
+            //exact name match
+            if (possibleTargetSpecies.ContainsKey(productKey))
+            {
+                expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+            }
+
+            //todo:smarter nonexact matching
+
+            //name starts with
+            else if (possibleTargetSpecies.Keys.Any(k => k.StartsWith(productKey)))
+            {
+                productKey = possibleTargetSpecies.Keys.Single(k => k.StartsWith(productKey));
+                expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+            }
+
+            //resolve inconsistent spacing in name between VMD and EMA
+            else if (possibleTargetSpecies.Keys.Any(k => k.Replace(" ", "").Equals(productKey.Replace(" ", ""))))
+            {
+                productKey =
+                    possibleTargetSpecies.Keys.Single(k => k.Replace(" ", "").Equals(productKey.Replace(" ", "")));
+                expiredProduct.TargetSpecies = possibleTargetSpecies[productKey];
+            }
+
+            //get the bit after "for" in the name. Risky - e.g. "solution for injection"
+            //could maybe do with species lookup for validation
+            else if (productKey.Contains(" for "))
+            {
+                var forSplit = productKey.Split(new[] { "for" }, StringSplitOptions.None);
+                var postFor = forSplit[forSplit.Length - 1].Replace("and", ",").Split(',')
+                    .Select(t => t.Trim().ToLowerInvariant())
+                    .Where(t => !string.IsNullOrWhiteSpace(t));
+
+                expiredProduct.TargetSpecies = postFor.ToArray();
+            }
+            else
+            {
+                Debug.WriteLine($"{expiredProduct.Name} ReferenceProduct not found");
+            }
+            PopulateStaticTypedTargetSpecies(expiredProduct);
         }
 
         /// <summary>
