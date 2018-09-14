@@ -8,7 +8,7 @@ namespace VetMedData.NET.ProductMatching.Optimisation
             new[] { 0d, 0d, 0d, 0d }
             , new[] { 1d, 10d, 10d, 1d }
             , new[] { 10, 10, 10, 10 }
-            , new[] { 3, 3, 3, 3 }){}
+            , new[] { 3, 2, 2, 3 }){}
     }
 
     internal static class ChromosomeExtensions
