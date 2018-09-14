@@ -2,36 +2,29 @@
 
 namespace VetMedData.NET.ProductMatching.Optimisation
 {
-    internal class ConfigurationChromosome:FloatingPointChromosome
+    internal class ConfigurationChromosome : FloatingPointChromosome
     {
-        public ConfigurationChromosome(double[] minValue, double[] maxValue, int[] totalBits, int[] fractionDigits) : base(minValue, maxValue, totalBits, fractionDigits)
-        {
-        }
+        public ConfigurationChromosome() : base(
+            new[] { 0d, 0d, 0d, 0d }
+            , new[] { 1d, 1d, 1d, 1d }
+            , new[] { 10, 10, 10, 10 }
+            , new[] { 3, 3, 3, 3 }){}
+    }
 
-        public ProductMatchConfig GetMatchConfig()
+    internal static class ChromosomeExtensions
+    {
+        public static ProductMatchConfig GetMatchConfig(this FloatingPointChromosome fpc)
         {
+            var values = fpc.ToFloatingPoints();
             return new DefaultProductMatchConfig
             {
                 NameMetricConfig =
                 {
-                    ABCompoundPositionalWeightRatio = 0d,
-                    APositionalWeightingCoefficientPower = 0d,
-                    BPositionalWeightingCoefficientPower = 0d
+                    ABCompoundPositionalWeightRatio = values[0],
+                    APositionalWeightingCoefficientPower = values[1],
+                    BPositionalWeightingCoefficientPower = values[2]
                 }
             };
         }
-
-        //public DisambiguatorConfig GetDisambiguatorConfig(ConfigurationChromosome chromosome)
-        //{
-        //    var threshold = 0d;
-        //    return new OrderedFilterBasedDisambiguatorConfig
-        //    {
-        //        Filters = new IProductMatchResultFilter[]
-        //        {
-        //            new CommonTargetSpeciesFilter(),
-        //            new ThresholdSimilarityResultFilter(threshold)
-        //        }
-        //    };
-        //}
     }
 }

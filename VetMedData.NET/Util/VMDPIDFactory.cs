@@ -55,6 +55,11 @@ namespace VetMedData.NET.Util
         /// <returns></returns>
         public static async Task<VMDPID> GetVmdPid(PidFactoryOptions options = PidFactoryOptions.None)
         {
+            if (_vmdpid != null)
+            {
+                return _vmdpid;
+            }
+
             var pidUpdated = false;
 
             //do we have an in-memory copy?

@@ -14,9 +14,14 @@ namespace VetMedData.NET.ProductMatching.Optimisation
         public double Evaluate(IChromosome chromosome)
         {
             var correctCount = 0;
-            var pid = VMDPIDFactory.GetVmdPid().Result;
-            
-            var cfg = (ConfigurationChromosome)chromosome;
+            var pid = VMDPIDFactory.GetVmdPid(
+                PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
+                PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct |
+                PidFactoryOptions.PersistentPid
+            ).Result;
+
+            var cfg = (FloatingPointChromosome)chromosome;
+            var threshold = cfg.ToFloatingPoints()[3];
             var pmr = new ProductMatchRunner(cfg.GetMatchConfig());
             var toMatch = new ConcurrentDictionary<string, string[]>(TruthFactory.GetTruth());
             Parallel.ForEach(toMatch, tm =>
@@ -28,7 +33,9 @@ namespace VetMedData.NET.ProductMatching.Optimisation
                     rp = pid.RealProducts.ToArray();
                 }
                 var res = pmr.GetMatch(ap, rp);
-                if (tm.Value.Contains(res.ReferenceProduct.VMNo))
+                if ((tm.Value.Contains(res.ReferenceProduct.VMNo) && res.ProductNameSimilarity > threshold)
+                    || (tm.Value.All(string.IsNullOrEmpty)&& res.ProductNameSimilarity < threshold )
+                )
                 {
                     Interlocked.Increment(ref correctCount);
                 }

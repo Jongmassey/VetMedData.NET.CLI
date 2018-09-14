@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GeneticSharp.Domain.Chromosomes;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VetMedData.NET.Model;
 using VetMedData.NET.ProductMatching;
+using VetMedData.NET.ProductMatching.Optimisation;
 using VetMedData.NET.Util;
 
 namespace VetMedData.CLI
@@ -70,7 +72,7 @@ namespace VetMedData.CLI
 
             else
 
-            if (args.Length > 0 && args[0].Equals("print",StringComparison.InvariantCultureIgnoreCase))
+            if (args.Length > 0 && args[0].Equals("print", StringComparison.InvariantCultureIgnoreCase))
             {
                 var propName = args[1];
                 var pidProperties = typeof(VMDPID).GetProperties();
@@ -94,7 +96,7 @@ namespace VetMedData.CLI
                     Console.WriteLine($"Property {propName} not found in VMDPID");
                 }
             }
-            else 
+            else
             if (args.Length > 1 && args[0].Equals("explainmatch"))
             {
                 var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
@@ -163,6 +165,48 @@ namespace VetMedData.CLI
                     }
                 }
             }
+
+            else if (args.Length > 1 && args[0].Equals("optimise", StringComparison.InvariantCultureIgnoreCase))
+            {
+                TruthFactory.SetPath(args[1]);
+                var pid = VMDPIDFactory.GetVmdPid(
+                    PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct |
+                    PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct |
+                    PidFactoryOptions.PersistentPid
+                    ).Result;
+
+                var ga = GaRunner.GetGeneticAlgorithm();
+                Console.WriteLine("Generation, ABWeightRatio, AWeight, BWeight, Threshold, SuccessRate");
+
+                var latestFitness = 0.0;
+
+                ga.GenerationRan += (sender, e) =>
+                {
+                    var bestChromosome = ga.BestChromosome as FloatingPointChromosome;
+                    var bestFitness = bestChromosome.Fitness.Value;
+
+                    if (bestFitness != latestFitness)
+                    {
+                        latestFitness = bestFitness;
+                        var phenotype = bestChromosome.ToFloatingPoints();
+
+                        Console.WriteLine(
+                            "{0,2},{1},{2},{3},{4},{5}",
+                            ga.GenerationsNumber,
+                            phenotype[0],
+                            phenotype[1],
+                            phenotype[2],
+                            phenotype[3],
+                            bestFitness
+                        );
+                    }
+                };
+
+                ga.Start();
+
+                Console.ReadKey();
+            }
+
             else
             {
                 Console.WriteLine("Requires path to file to process as first argument.");

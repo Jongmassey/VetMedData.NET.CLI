@@ -4,15 +4,13 @@ using System.IO;
 namespace VetMedData.NET.ProductMatching.Optimisation
 {
 
-    public class TruthFactory
+    public static class TruthFactory
     {
         private static Dictionary<string, string[]> _truth;
-        public static Dictionary<string, string[]> GetTruth(string truthFilePath = "")
-        {
-            if (_truth != null) return _truth;
-            _truth = new Dictionary<string, string[]>();
 
-            if (truthFilePath.Equals("")) return _truth;
+        public static void SetPath(string truthFilePath)
+        {
+            _truth = new Dictionary<string, string[]>();
 
             using (var fs = File.OpenText(truthFilePath))
             {
@@ -24,6 +22,10 @@ namespace VetMedData.NET.ProductMatching.Optimisation
                     _truth[name] = correctVmNos;
                 }
             }
+        }
+
+        public static Dictionary<string, string[]> GetTruth()
+        {
             return _truth;
         }
     }
