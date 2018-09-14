@@ -6,7 +6,7 @@ namespace VetMedData.NET.ProductMatching.Optimisation
     {
         public ConfigurationChromosome() : base(
             new[] { 0d, 0d, 0d, 0d }
-            , new[] { 1d, 1d, 1d, 1d }
+            , new[] { 1d, 10d, 10d, 1d }
             , new[] { 10, 10, 10, 10 }
             , new[] { 3, 3, 3, 3 }){}
     }
