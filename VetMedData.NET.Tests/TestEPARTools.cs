@@ -31,7 +31,7 @@ namespace VetMedData.Tests
                 },
                 {
                     "promeris duo 499.5 mg + 499.5 mg spot-on for medium/large sized dogs",
-                    "https://www.ema.europa.eu/documents/product-information/promeris-epar-product-information_en.pdf"
+                    "https://www.ema.europa.eu/documents/product-information/promeris-duo-epar-product-information_en.pdf"
                 }
 
             };
