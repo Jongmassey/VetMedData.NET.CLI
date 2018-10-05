@@ -162,11 +162,12 @@ namespace VetMedData.NET.Util
                     .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(n => n.Trim())
                     .Where(n => !string.IsNullOrWhiteSpace(n));
 
-                //in case of multiple products in same sub-document, all ahve same target species
+                //in case of multiple products in same sub-document, all have same target species
                 var ts = GetTargetSpeciesFromText(cleanedsubdoc);
                 foreach (var name in names)
                 {
-                    outDic.Add(name, ts);
+                    outDic[name] = outDic.ContainsKey(name) ? outDic[name].Union(ts).Distinct().ToArray() : ts;
+                    //outDic.Add(name, ts);
                 }
             }
 

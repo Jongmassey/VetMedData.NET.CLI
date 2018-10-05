@@ -115,6 +115,10 @@ namespace VetMedData.NET.Util
         public static async Task<string> GetSpc(Product p)
         {
             var uri = ((ExpiredProduct)p).SPC_Link;
+            if (EPARTools.IsEPAR(uri))
+            {
+                uri = (await EPARTools.GetSearchResults(p.Name))[0];
+            }
 
             var tf = Path.GetTempPath() +
                      Path.DirectorySeparatorChar +

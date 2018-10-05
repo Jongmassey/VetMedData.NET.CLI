@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace VetMedData.NET.Util
@@ -15,8 +16,6 @@ namespace VetMedData.NET.Util
     // ReSharper disable once InconsistentNaming
     public class EPARTools
     {
-        private static readonly Uri EmaBaseUri = new Uri("http://www.ema.europa.eu/ema/");
-
         private const string EmaSearchUrl =
             @"https://www.ema.europa.eu/medicines/veterinary/EPAR/{prodname}";
 
@@ -24,7 +23,7 @@ namespace VetMedData.NET.Util
         // ReSharper disable once InconsistentNaming
         public static bool IsEPAR(string url)
         {
-            return url.Contains(EmaBaseUri.ToString());
+            return url.Contains("ema.europa.eu");
         }
 
         /// <summary>
@@ -35,19 +34,18 @@ namespace VetMedData.NET.Util
         /// <returns>Array of english-language SPC URLs matching product name</returns>
         public static async Task<string[]> GetSearchResults(string productName)
         {
-            string[] res;
-
-            do
+            var outResult = new string[0];
+            productName = Regex.Replace(productName, @"[^a-z 1-9]", "", RegexOptions.IgnoreCase);
+            for (var i = 1; i <= productName.Split(' ').Length; i++)
             {
-                res = await GetSearchResultsInternal(productName);
-                productName = string.Join(' ', productName.Split(' ').Take(productName.Split(' ').Length - 1));
-                if (string.IsNullOrWhiteSpace(productName))
+                var productSubName = string.Join('-', productName.Split(' ').Take(i));
+                var result = await GetSearchResultsInternal(productSubName);
+                if (result != null && result.Length > 0)
                 {
-                    break;
+                    outResult = result;
                 }
-            } while (res == null || res.Length == 0);
-
-            return res;
+            }
+            return outResult;
         }
 
         /// <summary>
@@ -61,8 +59,6 @@ namespace VetMedData.NET.Util
         {
             using (var cli = new HttpClient())
             {
-                //build search URL
-                //cli.BaseAddress = EmaBaseUri;
                 var innerlinks = new List<string>();
 
                 var res = await cli.GetAsync(EmaSearchUrl.Replace("{prodname}", productName));
@@ -76,11 +72,10 @@ namespace VetMedData.NET.Util
                 doc.Load(await res.Content.ReadAsStreamAsync());
 
                 //extract list of links
-
                 var doclinks = doc.DocumentNode.SelectNodes("//a[@href]")
                     .Where(n =>
                         n.InnerText.Contains("EPAR - Product Information") &&
-                        n.Attributes["href"].Value.EndsWith(".pdf"))
+                        n.Attributes["href"].Value.EndsWith("_en.pdf"))
                     .Select(n => n.Attributes["href"].Value);
                 innerlinks.AddRange(doclinks);
 
