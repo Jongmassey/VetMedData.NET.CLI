@@ -12,8 +12,9 @@ namespace VetMedData.Tests
             var res = EPARTools.GetSearchResults("metacam").Result;
             Assert.IsNotNull(res,"No results returned");
             Assert.IsTrue(res.Length>0, "Empty results returned");
-            Assert.IsTrue(res[0].Equals("http://www.ema.europa.eu/docs/en_GB/document_library/EPAR_-_Product_Information/veterinary/000033/WC500065777.pdf")
-                ,$"Wrong url returned: {res[0]}");
+            Assert.IsTrue(res[0].Equals("https://www.ema.europa.eu/documents/product-information/metacam-epar-product-information_en.pdf")
+                //"http://www.ema.europa.eu/docs/en_GB/document_library/EPAR_-_Product_Information/veterinary/000033/WC500065777.pdf")
+                , $"Wrong url returned: {res[0]}");
         }
     }
 }
