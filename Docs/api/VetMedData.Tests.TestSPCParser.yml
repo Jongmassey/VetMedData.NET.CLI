@@ -1,0 +1,957 @@
+### YamlMime:ManagedReference
+items:
+- uid: VetMedData.Tests.TestSPCParser
+  commentId: T:VetMedData.Tests.TestSPCParser
+  id: TestSPCParser
+  parent: VetMedData.Tests
+  children:
+  - VetMedData.Tests.TestSPCParser.TestBTVpur
+  - VetMedData.Tests.TestSPCParser.TestBtvPurParsing
+  - VetMedData.Tests.TestSPCParser.TestDicuralParsing
+  - VetMedData.Tests.TestSPCParser.TestGetPdfPlainText
+  - VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromMultiPDF
+  - VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromPDF
+  - VetMedData.Tests.TestSPCParser.TestIbaflinParsing
+  - VetMedData.Tests.TestSPCParser.TestPurevaxRcch
+  - VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtraction
+  - VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDoc
+  - VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat
+  langs:
+  - csharp
+  - vb
+  name: TestSPCParser
+  nameWithType: TestSPCParser
+  fullName: VetMedData.Tests.TestSPCParser
+  type: Class
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestSPCParser
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 11
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestClass]
+
+      public class TestSPCParser
+    content.vb: >-
+      <TestClass>
+
+      Public Class TestSPCParser
+  inheritance:
+  - System.Object
+  inheritedMembers:
+  - System.Object.Equals(System.Object)
+  - System.Object.Equals(System.Object,System.Object)
+  - System.Object.GetHashCode
+  - System.Object.GetType
+  - System.Object.MemberwiseClone
+  - System.Object.ReferenceEquals(System.Object,System.Object)
+  - System.Object.ToString
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute.#ctor
+    arguments: []
+  modifiers.csharp:
+  - public
+  - class
+  modifiers.vb:
+  - Public
+  - Class
+- uid: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtraction
+  commentId: M:VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtraction
+  id: TestTargetSpeciesExtraction
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestTargetSpeciesExtraction()
+  nameWithType: TestSPCParser.TestTargetSpeciesExtraction()
+  fullName: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtraction()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestTargetSpeciesExtraction
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 14
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestTargetSpeciesExtraction()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestTargetSpeciesExtraction
+  overload: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtraction*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDoc
+  commentId: M:VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDoc
+  id: TestTargetSpeciesExtractionFromDoc
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestTargetSpeciesExtractionFromDoc()
+  nameWithType: TestSPCParser.TestTargetSpeciesExtractionFromDoc()
+  fullName: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDoc()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestTargetSpeciesExtractionFromDoc
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 30
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestTargetSpeciesExtractionFromDoc()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestTargetSpeciesExtractionFromDoc
+  overload: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDoc*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat
+  commentId: M:VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat
+  id: TestTargetSpeciesExtractionFromDocOldFormat
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestTargetSpeciesExtractionFromDocOldFormat()
+  nameWithType: TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat()
+  fullName: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestTargetSpeciesExtractionFromDocOldFormat
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 45
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestTargetSpeciesExtractionFromDocOldFormat()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestTargetSpeciesExtractionFromDocOldFormat
+  overload: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestGetPdfPlainText
+  commentId: M:VetMedData.Tests.TestSPCParser.TestGetPdfPlainText
+  id: TestGetPdfPlainText
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestGetPdfPlainText()
+  nameWithType: TestSPCParser.TestGetPdfPlainText()
+  fullName: VetMedData.Tests.TestSPCParser.TestGetPdfPlainText()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestGetPdfPlainText
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 61
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestGetPdfPlainText()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestGetPdfPlainText
+  overload: VetMedData.Tests.TestSPCParser.TestGetPdfPlainText*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromPDF
+  commentId: M:VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromPDF
+  id: TestGetTargetSpeciesFromPDF
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestGetTargetSpeciesFromPDF()
+  nameWithType: TestSPCParser.TestGetTargetSpeciesFromPDF()
+  fullName: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromPDF()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestGetTargetSpeciesFromPDF
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 70
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestGetTargetSpeciesFromPDF()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestGetTargetSpeciesFromPDF
+  overload: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromPDF*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromMultiPDF
+  commentId: M:VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromMultiPDF
+  id: TestGetTargetSpeciesFromMultiPDF
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestGetTargetSpeciesFromMultiPDF()
+  nameWithType: TestSPCParser.TestGetTargetSpeciesFromMultiPDF()
+  fullName: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromMultiPDF()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestGetTargetSpeciesFromMultiPDF
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 81
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestGetTargetSpeciesFromMultiPDF()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestGetTargetSpeciesFromMultiPDF
+  overload: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromMultiPDF*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestDicuralParsing
+  commentId: M:VetMedData.Tests.TestSPCParser.TestDicuralParsing
+  id: TestDicuralParsing
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestDicuralParsing()
+  nameWithType: TestSPCParser.TestDicuralParsing()
+  fullName: VetMedData.Tests.TestSPCParser.TestDicuralParsing()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestDicuralParsing
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 96
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestDicuralParsing()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestDicuralParsing
+  overload: VetMedData.Tests.TestSPCParser.TestDicuralParsing*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestIbaflinParsing
+  commentId: M:VetMedData.Tests.TestSPCParser.TestIbaflinParsing
+  id: TestIbaflinParsing
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestIbaflinParsing()
+  nameWithType: TestSPCParser.TestIbaflinParsing()
+  fullName: VetMedData.Tests.TestSPCParser.TestIbaflinParsing()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestIbaflinParsing
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 107
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestIbaflinParsing()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestIbaflinParsing
+  overload: VetMedData.Tests.TestSPCParser.TestIbaflinParsing*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestBtvPurParsing
+  commentId: M:VetMedData.Tests.TestSPCParser.TestBtvPurParsing
+  id: TestBtvPurParsing
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestBtvPurParsing()
+  nameWithType: TestSPCParser.TestBtvPurParsing()
+  fullName: VetMedData.Tests.TestSPCParser.TestBtvPurParsing()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestBtvPurParsing
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 118
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      [DeploymentItem("TestFiles\\TestSPCParser\\", "TestFiles\\TestSPCParser\\")]
+
+      public void TestBtvPurParsing()
+    content.vb: >-
+      <TestMethod>
+
+      <DeploymentItem("TestFiles\TestSPCParser\", "TestFiles\TestSPCParser\")>
+
+      Public Sub TestBtvPurParsing
+  overload: VetMedData.Tests.TestSPCParser.TestBtvPurParsing*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.DeploymentItemAttribute.#ctor(System.String,System.String)
+    arguments:
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+    - type: System.String
+      value: TestFiles\TestSPCParser\
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestBTVpur
+  commentId: M:VetMedData.Tests.TestSPCParser.TestBTVpur
+  id: TestBTVpur
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestBTVpur()
+  nameWithType: TestSPCParser.TestBTVpur()
+  fullName: VetMedData.Tests.TestSPCParser.TestBTVpur()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestBTVpur
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 128
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      public void TestBTVpur()
+    content.vb: >-
+      <TestMethod>
+
+      Public Sub TestBTVpur
+  overload: VetMedData.Tests.TestSPCParser.TestBTVpur*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+- uid: VetMedData.Tests.TestSPCParser.TestPurevaxRcch
+  commentId: M:VetMedData.Tests.TestSPCParser.TestPurevaxRcch
+  id: TestPurevaxRcch
+  parent: VetMedData.Tests.TestSPCParser
+  langs:
+  - csharp
+  - vb
+  name: TestPurevaxRcch()
+  nameWithType: TestSPCParser.TestPurevaxRcch()
+  fullName: VetMedData.Tests.TestSPCParser.TestPurevaxRcch()
+  type: Method
+  source:
+    remote:
+      path: VetMedData.NET.Tests/TestSPCParser.cs
+      branch: master
+      repo: https://github.com/Jongmassey/VetMedData.NET.git
+    id: TestPurevaxRcch
+    path: ../VetMedData.NET.Tests/TestSPCParser.cs
+    startLine: 144
+  assemblies:
+  - VetMedData.Tests
+  namespace: VetMedData.Tests
+  syntax:
+    content: >-
+      [TestMethod]
+
+      public void TestPurevaxRcch()
+    content.vb: >-
+      <TestMethod>
+
+      Public Sub TestPurevaxRcch
+  overload: VetMedData.Tests.TestSPCParser.TestPurevaxRcch*
+  attributes:
+  - type: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute
+    ctor: Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.#ctor
+    arguments: []
+  modifiers.csharp:
+  - public
+  modifiers.vb:
+  - Public
+references:
+- uid: VetMedData.Tests
+  commentId: N:VetMedData.Tests
+  name: VetMedData.Tests
+  nameWithType: VetMedData.Tests
+  fullName: VetMedData.Tests
+- uid: System.Object
+  commentId: T:System.Object
+  parent: System
+  isExternal: true
+  name: Object
+  nameWithType: Object
+  fullName: System.Object
+- uid: System.Object.Equals(System.Object)
+  commentId: M:System.Object.Equals(System.Object)
+  parent: System.Object
+  isExternal: true
+  name: Equals(Object)
+  nameWithType: Object.Equals(Object)
+  fullName: System.Object.Equals(System.Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    nameWithType: Object.Equals
+    fullName: System.Object.Equals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object)
+    name: Equals
+    nameWithType: Object.Equals
+    fullName: System.Object.Equals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.Equals(System.Object,System.Object)
+  commentId: M:System.Object.Equals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  name: Equals(Object, Object)
+  nameWithType: Object.Equals(Object, Object)
+  fullName: System.Object.Equals(System.Object, System.Object)
+  spec.csharp:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    nameWithType: Object.Equals
+    fullName: System.Object.Equals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: ', '
+    nameWithType: ', '
+    fullName: ', '
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.Equals(System.Object,System.Object)
+    name: Equals
+    nameWithType: Object.Equals
+    fullName: System.Object.Equals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: ', '
+    nameWithType: ', '
+    fullName: ', '
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.GetHashCode
+  commentId: M:System.Object.GetHashCode
+  parent: System.Object
+  isExternal: true
+  name: GetHashCode()
+  nameWithType: Object.GetHashCode()
+  fullName: System.Object.GetHashCode()
+  spec.csharp:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    nameWithType: Object.GetHashCode
+    fullName: System.Object.GetHashCode
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.GetHashCode
+    name: GetHashCode
+    nameWithType: Object.GetHashCode
+    fullName: System.Object.GetHashCode
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.GetType
+  commentId: M:System.Object.GetType
+  parent: System.Object
+  isExternal: true
+  name: GetType()
+  nameWithType: Object.GetType()
+  fullName: System.Object.GetType()
+  spec.csharp:
+  - uid: System.Object.GetType
+    name: GetType
+    nameWithType: Object.GetType
+    fullName: System.Object.GetType
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.GetType
+    name: GetType
+    nameWithType: Object.GetType
+    fullName: System.Object.GetType
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.MemberwiseClone
+  commentId: M:System.Object.MemberwiseClone
+  parent: System.Object
+  isExternal: true
+  name: MemberwiseClone()
+  nameWithType: Object.MemberwiseClone()
+  fullName: System.Object.MemberwiseClone()
+  spec.csharp:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    nameWithType: Object.MemberwiseClone
+    fullName: System.Object.MemberwiseClone
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.MemberwiseClone
+    name: MemberwiseClone
+    nameWithType: Object.MemberwiseClone
+    fullName: System.Object.MemberwiseClone
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.ReferenceEquals(System.Object,System.Object)
+  commentId: M:System.Object.ReferenceEquals(System.Object,System.Object)
+  parent: System.Object
+  isExternal: true
+  name: ReferenceEquals(Object, Object)
+  nameWithType: Object.ReferenceEquals(Object, Object)
+  fullName: System.Object.ReferenceEquals(System.Object, System.Object)
+  spec.csharp:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    nameWithType: Object.ReferenceEquals
+    fullName: System.Object.ReferenceEquals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: ', '
+    nameWithType: ', '
+    fullName: ', '
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.ReferenceEquals(System.Object,System.Object)
+    name: ReferenceEquals
+    nameWithType: Object.ReferenceEquals
+    fullName: System.Object.ReferenceEquals
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: ', '
+    nameWithType: ', '
+    fullName: ', '
+  - uid: System.Object
+    name: Object
+    nameWithType: Object
+    fullName: System.Object
+    isExternal: true
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System.Object.ToString
+  commentId: M:System.Object.ToString
+  parent: System.Object
+  isExternal: true
+  name: ToString()
+  nameWithType: Object.ToString()
+  fullName: System.Object.ToString()
+  spec.csharp:
+  - uid: System.Object.ToString
+    name: ToString
+    nameWithType: Object.ToString
+    fullName: System.Object.ToString
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+  spec.vb:
+  - uid: System.Object.ToString
+    name: ToString
+    nameWithType: Object.ToString
+    fullName: System.Object.ToString
+    isExternal: true
+  - name: (
+    nameWithType: (
+    fullName: (
+  - name: )
+    nameWithType: )
+    fullName: )
+- uid: System
+  commentId: N:System
+  isExternal: true
+  name: System
+  nameWithType: System
+  fullName: System
+- uid: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtraction*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtraction
+  name: TestTargetSpeciesExtraction
+  nameWithType: TestSPCParser.TestTargetSpeciesExtraction
+  fullName: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtraction
+- uid: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDoc*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDoc
+  name: TestTargetSpeciesExtractionFromDoc
+  nameWithType: TestSPCParser.TestTargetSpeciesExtractionFromDoc
+  fullName: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDoc
+- uid: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat
+  name: TestTargetSpeciesExtractionFromDocOldFormat
+  nameWithType: TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat
+  fullName: VetMedData.Tests.TestSPCParser.TestTargetSpeciesExtractionFromDocOldFormat
+- uid: VetMedData.Tests.TestSPCParser.TestGetPdfPlainText*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestGetPdfPlainText
+  name: TestGetPdfPlainText
+  nameWithType: TestSPCParser.TestGetPdfPlainText
+  fullName: VetMedData.Tests.TestSPCParser.TestGetPdfPlainText
+- uid: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromPDF*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromPDF
+  name: TestGetTargetSpeciesFromPDF
+  nameWithType: TestSPCParser.TestGetTargetSpeciesFromPDF
+  fullName: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromPDF
+- uid: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromMultiPDF*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromMultiPDF
+  name: TestGetTargetSpeciesFromMultiPDF
+  nameWithType: TestSPCParser.TestGetTargetSpeciesFromMultiPDF
+  fullName: VetMedData.Tests.TestSPCParser.TestGetTargetSpeciesFromMultiPDF
+- uid: VetMedData.Tests.TestSPCParser.TestDicuralParsing*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestDicuralParsing
+  name: TestDicuralParsing
+  nameWithType: TestSPCParser.TestDicuralParsing
+  fullName: VetMedData.Tests.TestSPCParser.TestDicuralParsing
+- uid: VetMedData.Tests.TestSPCParser.TestIbaflinParsing*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestIbaflinParsing
+  name: TestIbaflinParsing
+  nameWithType: TestSPCParser.TestIbaflinParsing
+  fullName: VetMedData.Tests.TestSPCParser.TestIbaflinParsing
+- uid: VetMedData.Tests.TestSPCParser.TestBtvPurParsing*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestBtvPurParsing
+  name: TestBtvPurParsing
+  nameWithType: TestSPCParser.TestBtvPurParsing
+  fullName: VetMedData.Tests.TestSPCParser.TestBtvPurParsing
+- uid: VetMedData.Tests.TestSPCParser.TestBTVpur*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestBTVpur
+  name: TestBTVpur
+  nameWithType: TestSPCParser.TestBTVpur
+  fullName: VetMedData.Tests.TestSPCParser.TestBTVpur
+- uid: VetMedData.Tests.TestSPCParser.TestPurevaxRcch*
+  commentId: Overload:VetMedData.Tests.TestSPCParser.TestPurevaxRcch
+  name: TestPurevaxRcch
+  nameWithType: TestSPCParser.TestPurevaxRcch
+  fullName: VetMedData.Tests.TestSPCParser.TestPurevaxRcch
