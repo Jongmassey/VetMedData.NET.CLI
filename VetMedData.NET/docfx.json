@@ -9,7 +9,7 @@
           "src": "../"
         }
       ],
-      "dest": "../Docs/api",
+      "dest": "Docs/api",
       "disableGitFeatures": false,
       "disableDefaultFilter": false
     }
@@ -34,7 +34,7 @@
     "resource": [
       {
         "files": [
-          "images/**"
+          "Docs/images/**"
         ]
       }
     ],
