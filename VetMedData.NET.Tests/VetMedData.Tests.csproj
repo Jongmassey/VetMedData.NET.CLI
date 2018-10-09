@@ -17,6 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestFiles\TestSPCParser\btvpur-alsap-8-epar-product-information_en.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestFiles\TestSPCParser\SPC_124816.DOC">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

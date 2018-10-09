@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using VetMedData.NET.Model;
 using VetMedData.NET.Util;
 
 namespace VetMedData.Tests
@@ -113,6 +114,48 @@ namespace VetMedData.Tests
             Assert.IsTrue(ts.All(k=>k.Value != null && k.Value.Length>0),"Empty target species array returned");
             Assert.IsFalse(ts.Values.SelectMany(v=>v).Any(string.IsNullOrWhiteSpace),"Blank target species returned");
             Assert.IsTrue(ts.Where(kv => kv.Key.Contains("and")).All(kv => kv.Value.Length > 1), "multi-species product has single species");
+        }
+
+        [TestMethod, DeploymentItem(@"TestFiles\TestSPCParser\", @"TestFiles\TestSPCParser\")]
+        public void TestBtvPurParsing()
+        {
+            const string pathtopdf = @"TestFiles\TestSPCParser\btvpur-alsap-8-epar-product-information_en.pdf";
+            var sp = SPCParser.GetTargetSpeciesFromPdf(pathtopdf);
+            Assert.IsNotNull(sp, "Nothing returned");
+            Assert.IsTrue(sp.Length == 2, $"Returned {sp.Length} species instead of 2");
+            Assert.IsTrue(sp.Intersect(new[] {"sheep", "cattle"}).Count() == 2,$"Returned {string.Join(',',sp)} instead of cattle,sheep");
+        }
+
+        [TestMethod]
+        public void TestBTVpur()
+        {
+            var ep = new ExpiredProduct
+            {
+                Name = "btvpur alsap 8, suspension for injection",
+                SPC_Link = "ema.europa.eu"
+
+            };
+            var spc = VMDPIDFactory.GetSpc(ep).Result;
+            var sp = SPCParser.GetTargetSpeciesFromPdf(spc);
+            Assert.IsNotNull(sp, "Nothing returned");
+            Assert.IsTrue(sp.Length == 2, $"Returned {sp.Length} species instead of 2");
+            Assert.IsTrue(sp.Intersect(new[] { "sheep", "cattle" }).Count() == 2, $"Returned {string.Join(',', sp)} instead of cattle,sheep");
+        }
+
+        [TestMethod]
+        public void TestPurevaxRcch()
+        {
+            var ep = new ExpiredProduct
+            {
+                Name = "purevax rcch",
+                SPC_Link = "ema.europa.eu"
+
+            };
+            var spc = VMDPIDFactory.GetSpc(ep).Result;
+            var sp = SPCParser.GetTargetSpeciesFromPdf(spc);
+            Assert.IsNotNull(sp, "Nothing returned");
+            Assert.IsTrue(sp.Length == 1, $"Returned {sp.Length} species instead of 1");
+            Assert.IsTrue(sp.Intersect(new[] { "cats"}).Count() == 1, $"Returned {string.Join(',', sp)} instead of cats");
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,35 +37,32 @@ namespace VetMedData.Tests
             //"eu/2/16/202/001-003",
             //"eu/2/17/217/001-002",
         };
-        // private readonly string[] _malformedProductVmNos = { @"13907/4001" };
 
 
         [TestMethod]
         public void TestGetPID()
         {
-            //var pid = VMDPIDFactory.GetVmdpid().Result;
             var pid = VMDPIDFactory.GetVmdPid().Result;
             Assert.IsNotNull(pid, "returned PID object is null");
             Assert.IsNotNull(pid.CreatedDateTime, "pid.CreatedDateTime is null");
             Assert.IsTrue(pid.CurrentlyAuthorisedProducts.Count > 0, "No currently authorised products");
             Assert.IsTrue(pid.ExpiredProducts.Count > 0, "No expired products");
             Assert.IsTrue(pid.SuspendedProducts.Count > 0, "No suspended products");
-            Assert.IsTrue(pid.HomoeopathicProducts.Count > 0, "No homoepathic products");
+            Assert.IsTrue(pid.HomoeopathicProducts.Count > 0, "No homoeopathic products");
         }
 
         [TestMethod]
         public void TestAllProducts()
         {
-            //var pid = VMDPIDFactory.GetVmdpid().Result;
             var pid = VMDPIDFactory.GetVmdPid().Result;
             var ap = pid.AllProducts;
 
             //check product count
-            var totalcount = pid.HomoeopathicProducts.Count
+            var totalCount = pid.HomoeopathicProducts.Count
                              + pid.CurrentlyAuthorisedProducts.Count
                              + pid.ExpiredProducts.Count
                              + pid.SuspendedProducts.Count;
-            Assert.IsTrue(totalcount == ap.Count(), "Mismatched total counts");
+            Assert.IsTrue(totalCount == ap.Count(), "Mismatched total counts");
 
             //check properties of returned products
             foreach (var product in ap)
@@ -101,7 +99,6 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestProductPropertyAggregators()
         {
-            //var pid = VMDPIDFactory.GetVmdpid().Result;
             var pid = VMDPIDFactory.GetVmdPid().Result;
             foreach (var prop in typeof(VMDPID).GetProperties().Where(p => p.PropertyType == typeof(IEnumerable<string>)))
             {
@@ -115,7 +112,6 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestTargetSpeciesExtractionLocal()
         {
-            //var pid = VMDPIDFactory.GetVmdpid().Result;
             var pid = VMDPIDFactory.GetVmdPid().Result;
             foreach (var ep in pid.ExpiredProducts.Where(ep => !EPARTools.IsEPAR(ep.SPC_Link)))
             {
@@ -132,33 +128,30 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestStaticTypingOfTargetSpecies()
         {
-            //var pid = VMDPIDFactory.GetVmdpid().Result;
             var pid = VMDPIDFactory.GetVmdPid().Result;
             foreach (var p in pid.AllProducts)
             {
                 if (p.GetType() == typeof(ExpiredProduct) || _missingTargetSpecies.Contains(p.VMNo)) continue;
                 Assert.IsTrue(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any(),
-                    $"Non-expired with un-filled strongly tped target species for {p.Name}");
+                    $"Non-expired with un-filled strongly typed target species for {p.Name}");
             }
         }
 
         [TestMethod]
         public void TestStaticTypingOfTargetSpeciesExpiredProducts()
         {
-            //var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
             var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct).Result;
             foreach (var p in pid.AllProducts)
             {
                 if (p.GetType() != typeof(ExpiredProduct)
                     || EPARTools.IsEPAR(((ExpiredProduct)p).SPC_Link)
-                    //|| _malformedProductVmNos.Contains(p.VMNo)
                     ) continue;
                 if (!(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any()))
                 {
                     Debug.WriteLine(string.Join(';', p.TargetSpecies));
                 }
                 Assert.IsTrue(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any(),
-                    $"Expired product with un-filled strongly tped target species for {p.Name}"
+                    $"Expired product with un-filled strongly typed target species for {p.Name}"
                     + $"from {string.Join(';', p.TargetSpecies)}");
             }
         }
@@ -166,31 +159,28 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestStaticTypingOfTargetSpeciesEmaLicensedExpiredProducts()
         {
-            //var pid = VMDPIDFactory.GetVmdpid(false, false, true).Result;
             var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct).Result;
-            foreach (var p in pid.AllProducts)
+            var errorString = "";
+            var errors = pid.AllProducts
+                .Where(p => p.GetType() == typeof(ExpiredProduct) && EPARTools.IsEPAR(((ExpiredProduct) p).SPC_Link))
+                .Where(p => p.TargetSpeciesTyped == null || !p.TargetSpeciesTyped.Any()).ToList();
+            
+            if (errors.Any())
             {
-                if (p.GetType() != typeof(ExpiredProduct)
-                    || !EPARTools.IsEPAR(((ExpiredProduct)p).SPC_Link)
-                    ) continue;
-                if (!(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any()))
-                {
-                    Debug.WriteLine(string.Join(';', p.TargetSpecies));
-                }
-
-                Assert.IsTrue(p.TargetSpeciesTyped != null && p.TargetSpeciesTyped.Any(),
-                    $"EMA-licensed expired product with un-filled strongly tped target species for {p.Name}" +
-                    $"from {string.Join(';', p.TargetSpecies)}");
+                errorString = string.Join(Environment.NewLine,
+                    errors.Select(p => $"{p.Name} " +
+                                       $"from {string.Join(';', p.TargetSpecies??new string[0])}"));
             }
+
+            Assert.IsFalse(errors.Any(),
+                $"EMA-licensed expired product with un-filled strongly typed target species for: {errorString}");
         }
 
         [TestMethod]
         public void TestGetPIDWithExpiredProductTargetSpecies()
         {
-            //var pid = VMDPIDFactory.GetVmdpid(false, true).Result;
             var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredVmdProduct).Result;
             Assert.IsFalse(pid.ExpiredProducts
-                                                //.Where(ep=>!_malformedProductVmNos.Contains(ep.VMNo))
                                                 .Where(ep => ep.SPC_Link.ToLower().EndsWith(".doc") ||
                                                            ep.SPC_Link.ToLower().EndsWith(".docx"))
                                                 .Any(ep => !ep.TargetSpecies.Any()));
@@ -199,7 +189,6 @@ namespace VetMedData.Tests
         [TestMethod]
         public void TestGetPIDWithEuropeanExpiredProductTargetSpecies()
         {
-            //var pid = VMDPIDFactory.GetVmdpid(false, false, true).Result;
             var pid = VMDPIDFactory.GetVmdPid(PidFactoryOptions.GetTargetSpeciesForExpiredEmaProduct).Result;
             foreach (var missingProduct in pid.ExpiredProducts
                 .Where(ep => ep.SPC_Link.ToLowerInvariant()
@@ -228,5 +217,5 @@ namespace VetMedData.Tests
 
         }
 
-    }
+       }
 }
