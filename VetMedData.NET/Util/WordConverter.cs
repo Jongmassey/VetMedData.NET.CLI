@@ -18,6 +18,11 @@ namespace VetMedData.NET.Util
         {
             var d = new Document();
             var outpath = pathToDoc.Replace(".doc", ".docx",StringComparison.InvariantCultureIgnoreCase);
+            if (File.Exists(outpath))
+            {
+                File.Delete(outpath);
+            }
+
             d.LoadFromFile(pathToDoc,FileFormat.Doc);
             d.SaveToFile(outpath,FileFormat.Docx);
             return outpath;

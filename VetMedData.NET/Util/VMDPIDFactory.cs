@@ -38,8 +38,9 @@ namespace VetMedData.NET.Util
     public static class VMDPIDFactory
     {
         private static readonly IFormatter Formatter = new BinaryFormatter();
-        private static readonly string TempFile = Path.GetTempPath() + Path.DirectorySeparatorChar + "VMDPID.bin";
 
+        private static readonly string TempFile //= Path.GetTempPath() + Path.DirectorySeparatorChar + "VMDPID.bin";
+            = Path.Combine(Path.GetTempPath(), "VMDPID.bin");
         private const string VmdUrl = @"http://www.vmd.defra.gov.uk/ProductInformationDatabase/downloads/VMD_ProductInformationDatabase.xml";
         private const string DateTimeFormat = @"dd/MM/yyyy HH:mm:ss";
 
@@ -55,6 +56,11 @@ namespace VetMedData.NET.Util
         /// <returns></returns>
         public static async Task<VMDPID> GetVmdPid(PidFactoryOptions options = PidFactoryOptions.None)
         {
+            if (_vmdpid != null)
+            {
+                return _vmdpid;
+            }
+
             var pidUpdated = false;
 
             //do we have an in-memory copy?
@@ -286,17 +292,34 @@ namespace VetMedData.NET.Util
         /// HTTP GETs XML PID from VMD as stream
         /// </summary>
         /// <returns></returns>
-        private static async Task<Stream> GetHttpStream(string url)
+        private static async Task<Stream> GetHttpStream(string url, int retries = 3, int delayMilliseconds = 300)
         {
             var ms = new MemoryStream();
-            using (var resp = await Client.GetAsync(url))
-            using (var instream = await resp.Content.ReadAsStreamAsync())
+            var ex = new Exception("Exception details not available");
+            for (var i = 1; i < retries; i++)
             {
-                await instream.CopyToAsync(ms);
-            }
+                try
+                {
+                    
+                    using (var responseMessage = await Client.GetAsync(url))
+                    using (var inputStream = await responseMessage.Content.ReadAsStreamAsync())
+                    {
+                        await inputStream.CopyToAsync(ms);
+                    }
 
-            ms.Seek(0, SeekOrigin.Begin);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    return ms;
+                }
+                catch (Exception e)
+                {
+                    Task.Delay(delayMilliseconds).Wait();
+                    ex = e;
+                }
+            }
+            Debug.WriteLine($"Retries exhausted for url: {url}");
+            Debug.WriteLine(ex);
             return ms;
+            
         }
 
         /// <summary>

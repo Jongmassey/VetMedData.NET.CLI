@@ -1,5 +1,6 @@
-﻿using System;
-using SimMetrics.Net.API;
+﻿using SimMetrics.Net.API;
+using System;
+using System.Diagnostics;
 
 namespace VetMedData.NET.ProductMatching
 {
@@ -38,19 +39,38 @@ namespace VetMedData.NET.ProductMatching
                     if (sim > maxSim)
                     {
                         maxSim = sim;
-                        maxSimAIndex = aIndex+1;
-                        maxSimBIndex = bIndex+1;
+                        maxSimAIndex = aIndex + 1;
+                        maxSimBIndex = bIndex + 1;
                     }
                 }
 
-                var aWeight = Math.Pow(maxSimAIndex,_config.APositionalWeightingCoefficientPower);
+                var aWeight = Math.Pow(maxSimAIndex, _config.APositionalWeightingCoefficientPower);
                 var bWeight = Math.Pow(maxSimBIndex, _config.BPositionalWeightingCoefficientPower);
                 var netWeight = aWeight * (1 - _config.ABCompoundPositionalWeightRatio) +
                                 bWeight * _config.ABCompoundPositionalWeightRatio;
 
-                totalSim += maxSim / netWeight;
+                if (aWeight.Equals(double.NaN)
+                    ||
+                    bWeight.Equals(double.NaN)
+                    ||
+                    netWeight.Equals(double.NaN)
+                    ||
+                    maxSim.Equals(double.NaN)
+                )
+                {
+                    Debug.WriteLine("NaN value in similarity calculation");
+                }
 
-                totalDivisor += 1 / netWeight;
+                if (maxSim > 0)
+                {
+                    totalSim += maxSim / netWeight;
+
+                    totalDivisor += 1 / netWeight;
+                }
+                if (totalSim.Equals(double.NaN) || totalDivisor.Equals(double.NaN))
+                {
+                    Debug.WriteLine("Nan value detected");
+                }
             }
 
             return totalSim / totalDivisor;

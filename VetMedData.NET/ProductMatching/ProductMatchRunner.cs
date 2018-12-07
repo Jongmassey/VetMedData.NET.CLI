@@ -13,12 +13,12 @@ namespace VetMedData.NET.ProductMatching
             _cfg = cfg;
         }
 
-        private IEnumerable<ProductSimilarityResult> GetMatchResults(ActionedProduct p, IEnumerable<ReferenceProduct> referenceProductSet)
+        public IEnumerable<ProductSimilarityResult> GetMatchResults(ActionedProduct p, IEnumerable<ReferenceProduct> referenceProductSet)
         {
             return referenceProductSet.Select(rp => p.GetMatchingResult(rp, _cfg));
         }
 
-        private IEnumerable<ProductSimilarityResult> GetDisambiguationCandidates(IEnumerable<ProductSimilarityResult> matchResults)
+        public IEnumerable<ProductSimilarityResult> GetDisambiguationCandidates(IEnumerable<ProductSimilarityResult> matchResults)
         {
             return _cfg.DisambiguationCandidiateFilter.FilterResults(matchResults);
         }
