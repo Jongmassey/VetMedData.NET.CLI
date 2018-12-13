@@ -27,7 +27,6 @@ namespace VetMedData.CLI
                                                   PidFactoryOptions.PersistentPid).Result;
                 var cfg = new DefaultProductMatchConfig();
                 var pmr = new ProductMatchRunner(cfg);
-                var i = 0;
                 var sw = Stopwatch.StartNew();
 
                 var inputStrings = new BlockingCollection<string>();
@@ -36,38 +35,32 @@ namespace VetMedData.CLI
                 {
                     while (!fs.EndOfStream)
                     {
+
                         inputStrings.Add(fs.ReadLine()?.ToLowerInvariant().Trim());
-                        i++;
                     }
                 }
-                //Console.WriteLine($"Read {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
                 sw.Restart();
-                Parallel.ForEach(inputStrings, inputString =>
-                {
-                    var ap = new SoldProduct
-                    {
-                        TargetSpecies = new[] { "cattle" },
-                        Product = new Product { Name = inputString },
-                        ActionDate = DateTime.Now
-                    };
+                Parallel.ForEach(inputStrings.Where(s => !string.IsNullOrEmpty(s)), inputString =>
+                  {
+                      var ap = new SoldProduct
+                      {
+                          TargetSpecies = new[] { "cattle" },
+                          Product = new Product { Name = inputString },
+                          ActionDate = DateTime.Now
+                      };
 
-                    var res = pmr.GetMatch(ap, pid.RealProducts);
-                    lock (sb)
-                    {
-                        sb.AppendJoin(',',
-                            $"\"{res.InputProduct.Product.Name}\"",
-                            $"\"{res.ReferenceProduct.Name}\"",
-                            $"\"{res.ReferenceProduct.VMNo}\"",
-                            res.ProductNameSimilarity.ToString(CultureInfo.InvariantCulture),
-                            Environment.NewLine);
-                    }
-                });
-                //Console.WriteLine($"Processed {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
-                //sw.Restart();
-                //var outfile = args.Length==2? Path.GetFileName(args[0])+ args[1]: args[0] + ".out.csv";
-                //File.WriteAllText(outfile, sb.ToString());
+                      var res = pmr.GetMatch(ap, pid.RealProducts);
+                      lock (sb)
+                      {
+                          sb.AppendJoin(',',
+                              $"\"{res.InputProduct.Product.Name}\"",
+                              $"\"{res.ReferenceProduct.Name}\"",
+                              $"\"{res.ReferenceProduct.VMNo}\"",
+                              res.ProductNameSimilarity.ToString(CultureInfo.InvariantCulture),
+                              Environment.NewLine);
+                      }
+                  });
                 Console.WriteLine(sb.ToString());
-                //Console.WriteLine($"Wrote {i} rows in {string.Format("{0:0.00}", sw.Elapsed.TotalSeconds)} seconds.");
             }
 
             else
@@ -115,7 +108,6 @@ namespace VetMedData.CLI
                 var refprod = pid.AllProducts.Single(p => p.VMNo.Equals(args[2]));
                 var foo = ap.GetMatchingResult(refprod, cfg);
                 Console.WriteLine(foo);
-
             }
             else
             if (args.Length > 2 && args[0].Equals("explain"))
@@ -201,16 +193,12 @@ namespace VetMedData.CLI
                         );
                     }
                 };
-
                 ga.Start();
-
-                Console.ReadKey();
             }
 
             else
             {
                 Console.WriteLine("Requires path to file to process as first argument.");
-                //   Console.WriteLine("Output will be generated in same location unless path specified in second argument.");
                 Console.ReadLine();
             }
         }
